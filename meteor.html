@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Meteorite Fragment — Cosmic Waves Museum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f22" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0b0f22; --bg-2:#0a0d1b; --txt:#e6ebff; --muted:#9aa4c7; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:radial-gradient(1200px 800px at 70% -10%, #18204b 0%, var(--bg) 60%), var(--bg-2);color:var(--txt);
+         font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;overflow:hidden}
+    #scene-wrap{position:fixed;inset:0}
+    canvas{touch-action:none}
+    /* Pure 3D — no UI */
+  </style>
+</head>
+<body>
+  <div id="scene-wrap"></div>
+  <script type="module">
+    import { OrbitControls } from '/orbit.js';
+    import * as THREE from '/three3.js';
+
+    const IS_MOBILE = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) || (window.matchMedia && matchMedia('(pointer:coarse)').matches);
+
+    // renderer
+    const wrap = document.getElementById('scene-wrap');
+    const renderer = new THREE.WebGLRenderer({ antialias: !IS_MOBILE, alpha: true, powerPreference: 'high-performance' });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(IS_MOBILE ? Math.min(devicePixelRatio, 1.5) : Math.min(devicePixelRatio, 2));
+    renderer.shadowMap.enabled = !IS_MOBILE;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    wrap.appendChild(renderer.domElement);
+
+    // scene
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x060814, 24, 180);
+
+    // camera & controls
+    const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 400);
+    camera.position.set(0, 1.6, 8);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.06; controls.maxPolarAngle = Math.PI*0.49;
+    controls.target.set(0,1.1,0);
+
+    addEventListener('resize', ()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+    // Minimal environment (no extra lights)
+    const room = new THREE.Mesh(new THREE.BoxGeometry(22, 8, 28), new THREE.MeshStandardMaterial({ color:0x0f1330, roughness:0.9, metalness:0.05, side:THREE.BackSide }));
+    scene.add(room);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color:0x0b0f26, roughness:0.2, metalness:0.4 }));
+    floor.rotation.x = -Math.PI/2; floor.receiveShadow = !IS_MOBILE; scene.add(floor);
+
+    // Starfield ambiance (unlit)
+    const starGeo = new THREE.BufferGeometry();
+    const starCount = IS_MOBILE?600:1200; const starPos = new Float32Array(starCount*3);
+    for(let i=0;i<starCount;i++){ starPos[i*3+0]=(Math.random()-0.5)*120; starPos[i*3+1]=(Math.random()*40)+2; starPos[i*3+2]=-10 - Math.random()*80; }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos,3));
+    const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ size:0.26, color:0xbcd3ff, transparent:true, opacity:0.85 }));
+    scene.add(stars);
+
+    // --- Meteorite + single light source ---
+    function makeBumpyIcosa(radius=0.85, detail=2, noise=0.42){
+      const geo = new THREE.IcosahedronGeometry(radius, detail);
+      const pos = geo.getAttribute('position');
+      for(let i=0;i<pos.count;i++){
+        const v = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i)).normalize();
+        const n = 1 + (Math.random()-0.5)*noise;
+        v.multiplyScalar(radius * n);
+        pos.setXYZ(i, v.x, v.y, v.z);
+      }
+      geo.computeVertexNormals();
+      return geo;
+    }
+
+    const meteorMat = new THREE.MeshStandardMaterial({ color:0x787f95, roughness:0.95, metalness:0.15 });
+    const meteor = new THREE.Mesh(makeBumpyIcosa(0.95, 2, 0.5), meteorMat);
+    meteor.position.set(0,1.2,0);
+    meteor.castShadow = !IS_MOBILE; meteor.receiveShadow = !IS_MOBILE;
+    scene.add(meteor);
+
+    // Subtle rim via environment: a dim emissive outline (not a real light)
+    const rim = new THREE.Mesh(meteor.geometry.clone(), new THREE.MeshBasicMaterial({ color:0xaab4cc, wireframe:true, transparent:true, opacity:0.12 }));
+    rim.position.copy(meteor.position);
+    scene.add(rim);
+
+    // Visible single emitter sphere (ONLY light source)
+    const emitter = new THREE.Mesh(new THREE.SphereGeometry(0.11, 24, 24), new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0xffffff, emissiveIntensity:1.0 }));
+    emitter.position.set(-2.6, 2.1, 1.8);
+    scene.add(emitter);
+
+    const light = new THREE.PointLight(0xffffff, 2.8, 22, 2.0);
+    light.position.copy(emitter.position);
+    light.castShadow = !IS_MOBILE;
+    light.shadow.mapSize.set(1024,1024);
+    scene.add(light);
+
+    // Soft ground circle under meteor (for grounding, not a light)
+    const groundGlow = new THREE.Mesh(new THREE.CircleGeometry(1.2, 48), new THREE.MeshBasicMaterial({ color:0x203058, transparent:true, opacity:0.35 }));
+    groundGlow.rotation.x = -Math.PI/2; groundGlow.position.set(0,0.01,0);
+    scene.add(groundGlow);
+
+    // Animation
+    let tElapsed = 0;
+    const clock = new THREE.Clock();
+    function animate(){
+      const dt = clock.getDelta(); tElapsed += dt;
+      controls.update();
+      stars.rotation.y += 0.02*dt;
+      meteor.rotation.y += 0.12*dt; meteor.rotation.x += 0.04*dt;
+      // very gentle light drift for life
+      const r = 0.25; light.position.x = emitter.position.x + Math.sin(tElapsed*0.6)*r; light.position.z = emitter.position.z + Math.cos(tElapsed*0.5)*r*0.6;
+      renderer.render(scene,camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
