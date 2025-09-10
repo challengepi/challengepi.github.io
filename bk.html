@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Brahma Kumaris Museum — Peace Gallery (VR)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#120a0a" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0e0a12; --bg-2:#120a0a; --txt:#fffaf2; --muted:#d8c9c0; --glass:rgba(255,255,255,0.08); --glass-bd:rgba(255,255,255,0.18);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--txt);
+      background:
+        radial-gradient(1200px 800px at 60% -20%, #3b1320 0%, transparent 60%),
+        radial-gradient(1200px 800px at 40% 120%, #160e20 0%, transparent 60%),
+        linear-gradient(180deg, #1a0f1a 0%, var(--bg-2) 60%);
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      overflow:hidden;
+    }
+    #scene-wrap{position:fixed; inset:0}
+    canvas{touch-action:none}
+
+    /* UI panel */
+    .panel{
+      position:fixed; right:16px; top:16px; z-index:5;
+      background:var(--glass); backdrop-filter: blur(10px);
+      border:1px solid var(--glass-bd); border-radius:14px; padding:12px 14px; min-width:220px;
+      box-shadow:0 6px 30px rgba(0,0,0,0.35);
+    }
+    .panel h3{font:700 14px Orbitron,Inter,sans-serif; letter-spacing:1.5px; margin:0 0 8px; color:#ffd27a}
+    .row{display:flex; gap:10px; align-items:center; margin:8px 0}
+    .btn{
+      appearance:none; border:1px solid var(--glass-bd); background:rgba(255,255,255,0.06);
+      color:var(--txt); border-radius:12px; font:600 13px Inter,system-ui; padding:8px 12px; cursor:pointer;
+    }
+    .hint{font-size:12px; color:var(--muted); margin-top:4px}
+
+    /* Title (desktop only) */
+    .title{ position:fixed; left:50%; top:24px; transform:translateX(-50%);
+      font:700 16px Orbitron,Inter,sans-serif; letter-spacing:2px; text-transform:uppercase;
+      color:var(--muted); opacity:0.9; z-index:4; display:none; }
+    @media (min-width: 860px){ .title{display:block;} }
+  </style>
+</head>
+<body>
+  <div id="scene-wrap"></div>
+
+  <div class="title">Brahma Kumaris — Peace Gallery</div>
+
+  <div class="panel" id="panel">
+    <h3>VR</h3>
+    <div class="row">
+      <button class="btn" id="vrBtn">Enter VR</button>
+    </div>
+    <div class="hint">WebXR works in Chrome/Edge (Android) and Quest Browser.</div>
+  </div>
+
+  <script type="module">
+    // Use your local module paths
+    import * as THREE from '/three3.js';
+    import { OrbitControls } from '/orbit.js';
+
+    // --- Mobile detection
+    const IS_MOBILE = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) || (window.matchMedia && matchMedia('(pointer:coarse)').matches);
+
+    // Core
+    let scene, camera, renderer, controls, floor;
+    const raycaster = new THREE.Raycaster();
+    const pointer   = new THREE.Vector2();
+
+    // Renderer
+    const wrap = document.getElementById('scene-wrap');
+    renderer = new THREE.WebGLRenderer({ antialias: !IS_MOBILE, alpha: true, powerPreference: 'high-performance' });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(IS_MOBILE ? Math.min(devicePixelRatio, 1.5) : Math.min(devicePixelRatio, 2));
+    renderer.shadowMap.enabled = !IS_MOBILE;
+    if (!IS_MOBILE && THREE.PCFSoftShadowMap) renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    wrap.appendChild(renderer.domElement);
+    renderer.domElement.style.touchAction = 'none';
+
+    // === WebXR / VR ===
+    renderer.xr.enabled = true;
+
+    // Scene + camera + controls
+    scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x0c0710, 22, 160);
+
+    camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 400);
+    camera.position.set(0, 1.6, 12);
+
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.06;
+    controls.enablePan = true; controls.screenSpacePanning = true;
+    controls.rotateSpeed = 0.9; controls.zoomSpeed = 0.8; controls.panSpeed = 0.6;
+    controls.minDistance = 1.2; controls.maxDistance = 80.0; controls.maxPolarAngle = Math.PI * 0.49;
+    controls.target.set(0, 1.3, -6);
+    if ('zoomToCursor' in controls) controls.zoomToCursor = true;
+
+    // XR rig (for locomotion/teleport)
+    const xrRig = new THREE.Group();
+    scene.add(xrRig);
+    xrRig.add(camera);
+
+    // Toggle OrbitControls on XR start/end
+    renderer.xr.addEventListener('sessionstart', ()=>{ controls.enabled = false; });
+    renderer.xr.addEventListener('sessionend',   ()=>{ controls.enabled = true;  });
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    // Lights — warm palette
+    scene.add(new THREE.AmbientLight(0xfff4e8, 0.26));
+    const key = new THREE.DirectionalLight(0xffb088, 0.75); key.position.set(6, 10, 6); key.castShadow = !IS_MOBILE; key.shadow.mapSize.set(1024, 1024); scene.add(key);
+    const hemi = new THREE.HemisphereLight(0xffc1a1, 0x130b17, IS_MOBILE ? 0.6 : 0.35); scene.add(hemi);
+    const fill = new THREE.PointLight(0xffa070, 0.55, 60, 1.5); fill.position.set(-4, 4, -2); scene.add(fill);
+
+    // Room
+    const room = new THREE.Mesh(
+      new THREE.BoxGeometry(22, 8, 100),
+      new THREE.MeshStandardMaterial({ color:0x1a0d14, roughness:0.92, metalness:0.05, side:THREE.BackSide })
+    );
+    scene.add(room);
+
+    floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(40, 160),
+      new THREE.MeshStandardMaterial({ color:0x1a0f18, roughness:0.25, metalness:0.35 })
+    );
+    floor.rotation.x = -Math.PI/2; floor.receiveShadow = !IS_MOBILE; scene.add(floor);
+
+    // Starfield (soft warm)
+    const starGeo = new THREE.BufferGeometry();
+    const starCount = IS_MOBILE ? 600 : 1100;
+    const starPos = new Float32Array(starCount*3);
+    for (let i=0;i<starCount;i++){
+      starPos[i*3+0] = (Math.random()-0.5)*120;
+      starPos[i*3+1] = (Math.random()*40)+2;
+      starPos[i*3+2] = -10 - Math.random()*200;
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos,3));
+    const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ size:0.26, color:0xffe0bd, transparent:true, opacity:0.85 }));
+    scene.add(stars);
+
+    // Label helper
+    function makeLabel(text) {
+      const c = document.createElement('canvas'), p=16, fs=34;
+      const ctx = c.getContext('2d');
+      ctx.font = `bold ${fs}px Inter, Arial`;
+      const w = Math.ceil(ctx.measureText(text).width) + p*2; const h = fs + p*2;
+      c.width = w; c.height = h; const c2 = c.getContext('2d'); c2.font = `bold ${fs}px Inter, Arial`;
+      c2.fillStyle='rgba(24,12,20,0.85)'; c2.strokeStyle='rgba(255,255,255,0.25)'; c2.lineWidth=4;
+      c2.beginPath(); const r=18; c2.moveTo(r,0); c2.arcTo(w,0,w,h,r); c2.arcTo(w,h,0,h,r); c2.arcTo(0,h,0,0,r); c2.arcTo(0,0,w,0,r); c2.closePath();
+      c2.fill(); c2.stroke();
+      c2.fillStyle='#fff6e9'; c2.textAlign='center'; c2.textBaseline='middle'; c2.fillText(text,w/2,h/2);
+      const tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter;
+      const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent:true, depthWrite:false }));
+      const s=0.008; spr.scale.set(w*s, h*s, 1); return spr;
+    }
+
+    // Description helper (smaller under‑label text)
+    function makeSub(text){
+      const c = document.createElement('canvas'), p=12, fs=22; const ctx = c.getContext('2d');
+      ctx.font = `600 ${fs}px Inter, Arial`; const w = Math.ceil(ctx.measureText(text).width) + p*2; const h = fs + p*2; c.width = w; c.height = h;
+      const g = c.getContext('2d'); g.font = `600 ${fs}px Inter, Arial`; g.fillStyle='rgba(255,255,255,0.75)'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(text,w/2,h/2);
+      const tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter;
+      const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent:true, depthWrite:false }));
+      const s=0.006; spr.scale.set(w*s, h*s, 1); return spr;
+    }
+
+    // Pedestal
+    function makePedestal(){
+      const p = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.65, 0.75, 0.5, 32),
+        new THREE.MeshStandardMaterial({ color:0x26131c, metalness:0.25, roughness:0.45 })
+      );
+      p.receiveShadow = !IS_MOBILE; return p;
+    }
+
+    // Exhibit builder
+    function addExhibit({ name, sub, pos = {x:0,y:0,z:0}, buildMesh } = {}) {
+      const group = new THREE.Group();
+      const p = (pos && typeof pos.x==='number' && typeof pos.y==='number' && typeof pos.z==='number') ? pos : {x:0,y:0,z:0};
+      group.position.set(p.x, p.y, p.z);
+      const pedestal = makePedestal(); group.add(pedestal);
+      const builder = (typeof buildMesh === 'function') ? buildMesh : ()=> new THREE.Group();
+      let mesh = builder();
+      if (!mesh || !(mesh && mesh.isObject3D)) { console.warn('[addExhibit] buildMesh did not return an Object3D for', name); mesh = new THREE.Group(); }
+      if (mesh.position && typeof mesh.position.y === 'number') { mesh.position.y = 0.95; }
+      if (mesh.castShadow !== undefined) mesh.castShadow = !IS_MOBILE; group.add(mesh);
+      const label = makeLabel(name); label.position.set(0, 2.0, 0); group.add(label);
+      if (sub){ const l2 = makeSub(sub); l2.position.set(0, 1.7, 0); group.add(l2); }
+      if (!IS_MOBILE) { const spot = new THREE.SpotLight(0xffffff, 0.9, 10, Math.PI/6, 0.35, 1.8); spot.position.set(0.8, 3.5, 0.8); spot.target = mesh; group.add(spot, spot.target); }
+      scene.add(group); return group;
+    }
+
+    // --- Artefacts ---
+    // 1) Radiant Sun (Supreme Light)
+    function buildRadiantSun(){
+      const g = new THREE.Group();
+      const core = new THREE.Mesh(new THREE.SphereGeometry(0.32, 32, 16), new THREE.MeshStandardMaterial({ color:0xffc28a, emissive:0xffb874, emissiveIntensity:1.5, roughness:0.2, metalness:0.0 }));
+      g.add(core);
+      const c = document.createElement('canvas'); c.width = c.height = 512; const ctx = c.getContext('2d');
+      const grd = ctx.createRadialGradient(256,256,40, 256,256,256); grd.addColorStop(0,'rgba(255,206,150,0.9)'); grd.addColorStop(0.4,'rgba(255,160,100,0.45)'); grd.addColorStop(1,'rgba(255,80,40,0)');
+      ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(256,256,256,0,Math.PI*2); ctx.fill();
+      const haloTex = new THREE.CanvasTexture(c); const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false }));
+      halo.scale.set(2.4,2.4,1); g.add(halo);
+      const rayGeo = new THREE.CylinderGeometry(0.02, 0.04, 1.8, 6, 1, true);
+      const rayMat = new THREE.MeshBasicMaterial({ color:0xffcaa0, transparent:true, opacity:0.65, blending:THREE.AdditiveBlending });
+      const rays = new THREE.InstancedMesh(rayGeo, rayMat, 24);
+      const dummy = new THREE.Object3D();
+      for (let i=0;i<24;i++){
+        const a = (i/24)*Math.PI*2; dummy.position.set(Math.cos(a)*0.0, 0.9, Math.sin(a)*0.0); dummy.rotation.set(Math.PI/2, 0, a); dummy.updateMatrix(); rays.setMatrixAt(i, dummy.matrix);
+      }
+      g.add(rays);
+      g.userData.update = (t)=>{ halo.material.rotation += 0.02; core.rotation.y += 0.15*clock.getDelta(); };
+      return g;
+    }
+
+    // 2) Lotus of Purity (two rings of petals)
+    function buildLotus(){
+      const group = new THREE.Group();
+      const pts = [];
+      for (let i=0;i<=12;i++){
+        const u = i/12; const x = Math.sin(u*Math.PI) * 0.16; const y = u*0.6;
+        pts.push(new THREE.Vector2(x, y));
+      }
+      const petalG = new THREE.LatheGeometry(pts, 24); petalG.scale(1,1.1,1);
+      const mat = new THREE.MeshStandardMaterial({ color:0xff9ed7, metalness:0.2, roughness:0.35, side:THREE.DoubleSide });
+      const ring = new THREE.Group(); const ring2 = new THREE.Group();
+      const N = 12; for (let i=0;i<N;i++){
+        const p = new THREE.Mesh(petalG, mat); const a = (i/N)*Math.PI*2; p.position.set(Math.cos(a)*0.35, 0.1, Math.sin(a)*0.35); p.lookAt(0,0.6,0); p.rotation.z += 0.3; ring.add(p);
+      }
+      for (let i=0;i<N;i++){
+        const p = new THREE.Mesh(petalG, mat); const a = (i/N)*Math.PI*2 + Math.PI/N; p.position.set(Math.cos(a)*0.24, 0.0, Math.sin(a)*0.24); p.lookAt(0,0.5,0); p.rotation.z += 0.5; ring2.add(p);
+      }
+      const heart = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 12), new THREE.MeshStandardMaterial({ color:0xffe6a8, emissive:0xffd37a, emissiveIntensity:0.6 })); heart.position.y = 0.25;
+      group.add(ring, ring2, heart);
+      group.userData.update = (t)=>{ ring.rotation.y = Math.sin(t*0.2)*0.12; ring2.rotation.y = -Math.sin(t*0.2)*0.12; };
+      return group;
+    }
+
+    // 3) Unity Ribbon (Möbius)
+    function buildMobius(){
+      const g = new THREE.BufferGeometry(); const segments = 180, width = 0.22; const positions = [];
+      for (let i=0;i<=segments;i++){
+        const t = i / segments * Math.PI*2; const nx = Math.cos(t/2), ny = Math.sin(t/2); const cx = Math.cos(t), cy = 0, cz = Math.sin(t);
+        positions.push(cx + width*nx, cy + width*ny, cz); positions.push(cx - width*nx, cy - width*ny, cz);
+      }
+      const idx = []; for (let i=0;i<segments;i++){ const a = i*2, b=a+1, c=a+2, d=a+3; idx.push(a,b,c, b,d,c); }
+      g.setAttribute('position', new THREE.Float32BufferAttribute(positions,3)); g.setIndex(idx); g.computeVertexNormals();
+      const m = new THREE.MeshStandardMaterial({ color:0xffb2a6, metalness:0.6, roughness:0.3, side:THREE.DoubleSide });
+      const mesh = new THREE.Mesh(g,m); mesh.rotation.x = Math.PI/2; return mesh;
+    }
+
+    // 4) Hourglass of Time (Confluence Age)
+    function buildHourglass(){
+      const group = new THREE.Group();
+      const coneMat = new THREE.MeshStandardMaterial({ color:0xffdfa8, metalness:0.2, roughness:0.25, transparent:true, opacity:0.6 });
+      const top = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.6, 24), coneMat); top.position.y = 0.6;
+      const bot = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.6, 24), coneMat); bot.rotation.x = Math.PI; bot.position.y = 0.0;
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 12, 48), new THREE.MeshStandardMaterial({ color:0xffc070, metalness:0.6, roughness:0.2 })); ring.position.y = 0.3;
+      group.add(top, bot, ring);
+      const sand = new THREE.Mesh(new THREE.SphereGeometry(0.03, 12, 8), new THREE.MeshStandardMaterial({ color:0xffc98a, emissive:0xffb36a }));
+      group.add(sand);
+      group.userData.update = (t)=>{ const u = (Math.sin(t*0.5)*0.5+0.5); sand.position.set(0, 0.2 + (0.6*u), 0); };
+      return group;
+    }
+
+    // 5) Crystal of Virtues (cluster)
+    function buildCrystals(){
+      const g = new THREE.Group();
+      const mat = new THREE.MeshStandardMaterial({ color:0xa8fff8, metalness:0.7, roughness:0.05, transparent:true, opacity:0.8 });
+      for (let i=0;i<7;i++){
+        const o = new THREE.Mesh(new THREE.OctahedronGeometry(0.12 + Math.random()*0.06), mat);
+        o.position.set((Math.random()-0.5)*0.6, 0.1 + Math.random()*0.4, (Math.random()-0.5)*0.6);
+        o.rotation.set(Math.random()*2, Math.random()*2, Math.random()*2); g.add(o);
+      }
+      g.userData.update = (t)=>{ g.children.forEach((c, i)=>{ c.rotation.y += 0.3*clock.getDelta(); c.position.y += Math.sin(t*0.6 + i)*0.002; }); };
+      return g;
+    }
+
+    // 6) World Service Globe (wireframe + arcs)
+    function buildGlobe(){
+      const group = new THREE.Group();
+      const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.55, 26, 18), new THREE.MeshStandardMaterial({ color:0x2a1a2e, metalness:0.2, roughness:0.8 })); group.add(sphere);
+      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(0.56, 14, 10)), new THREE.LineBasicMaterial({ color:0xffd7b0, opacity:0.35, transparent:true })); group.add(edges);
+      function addArc(theta1, phi1, theta2, phi2){
+        const p1 = sph(theta1, phi1, 0.56), p2 = sph(theta2, phi2, 0.56);
+        const mid = p1.clone().add(p2).multiplyScalar(0.5).normalize().multiplyScalar(0.9);
+        const curve = new THREE.CatmullRomCurve3([p1, mid, p2]);
+        const g = new THREE.BufferGeometry().setFromPoints(curve.getPoints(40));
+        const m = new THREE.LineBasicMaterial({ color:0xffc89a, transparent:true, opacity:0.7 });
+        const l = new THREE.Line(g, m); group.add(l);
+      }
+      function sph(theta, phi, r){ const x = r*Math.cos(phi)*Math.cos(theta), y = r*Math.sin(phi), z = r*Math.cos(phi)*Math.sin(theta); return new THREE.Vector3(x,y,z); }
+      for (let i=0;i<6;i++){ addArc(Math.random()*Math.PI*2, (Math.random()*1.2-0.6), Math.random()*Math.PI*2, (Math.random()*1.2-0.6)); }
+      group.userData.update = (t)=>{ group.rotation.y += 0.1*clock.getDelta(); };
+      return group;
+    }
+
+    // 7) Tesseract of Introspection (4D hypercube)
+    function buildTesseract(){
+      const verts4 = []; for (let i=0;i<16;i++){ verts4.push([ (i & 1) ? 1 : -1, (i & 2) ? 1 : -1, (i & 4) ? 1 : -1, (i & 8) ? 1 : -1 ]); }
+      const edges = []; for (let i=0;i<16;i++){ for (let j=i+1;j<16;j++){ const d = ((i^j).toString(2).match(/1/g)||[]).length; if (d===1) edges.push([i,j]); } }
+      const pos = new Float32Array(edges.length * 2 * 3); const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+      const mat = new THREE.LineBasicMaterial({ color:0xffe1bf }); const lines = new THREE.LineSegments(geo, mat);
+      const v4 = { x:0, y:0, z:0, w:0 };
+      function rot4(v, a, b, theta){ const s = Math.sin(theta), c = Math.cos(theta); const va = v[a], vb = v[b]; v[a] = va * c - vb * s; v[b] = va * s + vb * c; }
+      function project4to3(v, d=3.6){ const f = 1 / (d - v.w); return [ v.x * f, v.y * f, v.z * f ]; }
+      lines.userData.update = (time)=>{
+        let idx = 0; const rotated = new Array(16);
+        for (let i=0;i<16;i++){
+          v4.x = verts4[i][0]; v4.y = verts4[i][1]; v4.z = verts4[i][2]; v4.w = verts4[i][3];
+          rot4(v4, 'x','w', time*0.55); rot4(v4, 'y','w', time*0.43); rot4(v4, 'z','w', time*0.36);
+          const p3 = project4to3(v4, 3.4); rotated[i] = p3;
+        }
+        for (let e=0;e<edges.length;e++){
+          const a = rotated[edges[e][0]], b = rotated[edges[e][1]];
+          pos[idx++] = a[0]; pos[idx++] = a[1]; pos[idx++] = a[2];
+          pos[idx++] = b[0]; pos[idx++] = b[1]; pos[idx++] = b[2];
+        }
+        geo.attributes.position.needsUpdate = true;
+      };
+      lines.scale.setScalar(0.9); return lines;
+    }
+
+    // Place exhibits (7 total)
+    const exSun  = addExhibit({ name:'Radiant Sun',     sub:'Supreme Light', pos:{x:-6.0,y:0,z:-10}, buildMesh:buildRadiantSun });
+    const exLot  = addExhibit({ name:'Lotus of Purity', sub:'Inner Bloom',   pos:{x:-2.5,y:0,z:-12}, buildMesh:buildLotus });
+    const exMob  = addExhibit({ name:'Unity Ribbon',    sub:'One World',     pos:{x: 0.8,y:0,z:-16}, buildMesh:buildMobius });
+    const exHg   = addExhibit({ name:'Hourglass',       sub:'Confluence Age',pos:{x: 3.8,y:0,z:-14}, buildMesh:buildHourglass });
+    const exCrys = addExhibit({ name:'Crystal Cluster', sub:'Seven Virtues', pos:{x: 7.0,y:0,z:-12}, buildMesh:buildCrystals });
+    const exGlb  = addExhibit({ name:'World Service',   sub:'Lighted Globe', pos:{x:-3.0,y:0,z:-22}, buildMesh:buildGlobe });
+    const exTes  = addExhibit({ name:'Tesseract',       sub:'Introspection', pos:{x: 3.0,y:0,z:-22}, buildMesh:buildTesseract });
+
+    // ===== VR Helpers =====
+    // Controller + laser pointer
+    const controller = renderer.xr.getController(0);
+    xrRig.add(controller);
+    const controllerGeo = new THREE.BufferGeometry().setFromPoints([ new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,-1) ]);
+    const controllerRay = new THREE.Line(controllerGeo, new THREE.LineBasicMaterial({ transparent:true, opacity:0.9 }));
+    controllerRay.name = 'controllerRay'; controllerRay.scale.z = 10; controller.add(controllerRay);
+
+    // Reticle for teleport target
+    const reticle = new THREE.Mesh(
+      new THREE.RingGeometry(0.15, 0.17, 32),
+      new THREE.MeshBasicMaterial({ transparent:true, opacity:0.85, side:THREE.DoubleSide })
+    );
+    reticle.rotation.x = -Math.PI/2; reticle.visible = false; scene.add(reticle);
+
+    const tempMatrix = new THREE.Matrix4();
+    function intersectController(ctrl, objects){
+      tempMatrix.identity().extractRotation(ctrl.matrixWorld);
+      raycaster.ray.origin.setFromMatrixPosition(ctrl.matrixWorld);
+      raycaster.ray.direction.set(0,0,-1).applyMatrix4(tempMatrix);
+      const hits = raycaster.intersectObjects(objects, true);
+      return hits[0] || null;
+    }
+
+    function tryTeleport(){
+      if (!renderer.xr.isPresenting) return;
+      const hit = intersectController(controller, [floor]);
+      if (hit){ xrRig.position.set(hit.point.x, 0, hit.point.z); }
+    }
+
+    controller.addEventListener('select', tryTeleport);
+
+    // --- Refocus at pointer (dblclick / double‑tap for non‑VR)
+    function setPointer(e){
+      const rect = renderer.domElement.getBoundingClientRect(); const cx = e.touches ? e.touches[0].clientX : e.clientX; const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      pointer.x = ((cx - rect.left) / rect.width) * 2 - 1; pointer.y = -((cy - rect.top) / rect.height) * 2 + 1;
+    }
+    function focusAtPointer(e){
+      setPointer(e); raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects([exSun, exLot, exMob, exHg, exCrys, exGlb, exTes, floor], true);
+      if (!hits.length) return; const p = hits[0].point; const dist = camera.position.distanceTo(controls.target); const dir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+      const newCamPos = new THREE.Vector3().copy(p).addScaledVector(dir, dist);
+      const start = performance.now(); const fromCam = camera.position.clone(); const fromTgt = controls.target.clone(); const ease = t => 1 - Math.pow(1 - t, 3);
+      (function step(now){ const t = Math.min(1, (now - start) / 420); const e2 = ease(t); camera.position.lerpVectors(fromCam, newCamPos, e2); controls.target.lerpVectors(fromTgt, p, e2); if (t < 1) requestAnimationFrame(step); })(start);
+    }
+    renderer.domElement.addEventListener('dblclick', focusAtPointer, { passive:true });
+    let lastTapTime = 0, lastTapX=0, lastTapY=0; renderer.domElement.addEventListener('touchend', (e)=>{
+      if (!e.changedTouches || e.changedTouches.length!==1) return; const touch = e.changedTouches[0]; const now = performance.now();
+      const dt = now - lastTapTime; const dx = touch.clientX - lastTapX; const dy = touch.clientY - lastTapY; lastTapTime = now; lastTapX = touch.clientX; lastTapY = touch.clientY;
+      if (dt < 320 && (dx*dx+dy*dy) < (24*24)) focusAtPointer({ touches:[touch] });
+    }, { passive:true });
+
+    // Animation clock
+    const clock = new THREE.Clock();
+
+    function renderLoop(){
+      const t = clock.getElapsedTime();
+      controls.update();
+
+      // keep target reasonable
+      const tgt = controls.target; tgt.x = Math.max(-8, Math.min(8, tgt.x)); tgt.y = Math.max(0.5, Math.min(3.5, tgt.y)); tgt.z = Math.max(-120, Math.min(-4, tgt.z));
+
+      // per-exhibit updates
+      [exSun, exLot, exMob, exHg, exCrys, exGlb, exTes].forEach(g=>{
+        const m = g.children.find(o=>o.userData && o.userData.update);
+        if (m && m.userData.update) m.userData.update(t);
+        if (g.userData.update) g.userData.update(t);
+      });
+
+      // gentle ambient motion
+      exMob.rotation.y += 0.25 * clock.getDelta();
+      stars.rotation.y += 0.02 * clock.getDelta();
+
+      // VR reticle update
+      if (renderer.xr.isPresenting){
+        const hit = intersectController(controller, [floor]);
+        if (hit){ reticle.position.copy(hit.point); reticle.visible = true; } else { reticle.visible = false; }
+      } else { reticle.visible = false; }
+
+      renderer.render(scene, camera);
+    }
+    renderer.setAnimationLoop(renderLoop);
+
+    // UI: Single VR button
+    const vrBtn = document.getElementById('vrBtn');
+    let currentSession = null;
+    if (vrBtn){
+      vrBtn.addEventListener('click', async ()=>{
+        if (!('xr' in navigator)){
+          alert('WebXR not supported on this device/browser. Try Chrome on Android or the Quest Browser.');
+          return;
+        }
+        if (!currentSession){
+          try {
+            const session = await navigator.xr.requestSession('immersive-vr', { requiredFeatures: ['local-floor'] });
+            currentSession = session;
+            session.addEventListener('end', ()=>{ currentSession = null; vrBtn.textContent = 'Enter VR'; });
+            await renderer.xr.setSession(session);
+            vrBtn.textContent = 'Exit VR';
+          } catch (e) {
+            console.warn('VR start failed:', e);
+            alert('Unable to start VR: ' + (e?.message ?? e));
+          }
+        } else { currentSession.end(); }
+      });
+    }
+  </script>
+</body>
+</html>
