@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System</title>
+   <link rel="stylesheet" href="./style.css">
+   <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css"/>
+</head>
+<body>
+   
+    <script src="./sliderjs/swiper-bundle.min.js" ></script>
+   
+        
+       
+<section class ="slider_container">
+    <div class="container">
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                            <div class="transbox">
+                                hello
+                            </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="transbox">
+                            hello
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="transbox">
+                            hello
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="transbox">
+                            hello
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+</section>
+    <script>
+        var swiper = new Swiper(".mySwiper", {
+          slidesPerView: 4,
+          spaceBetween: 30,
+          centeredSlides: true,
+          pagination: {
+            el: ".swiper-pagination",
+            clickable: true,
+          },
+        });
+      </script>
+</body>
+</html>

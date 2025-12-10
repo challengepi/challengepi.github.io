@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuxTelescope – Tiny Telescope Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<h1>AuxTelescope – Tiny Telescope Simulator</h1>
+<p>This little program is simulation of small auxiliary telescope. You can command it to look at coordinates, wait until it stops, ask it to "measure" the power of radio waves, simulate fault. Everything happens through a <strong>Tango</strong> device, so any PyTango client can communicate to it.</p>
+
+<hr>
+
+<h2>Quick start</h2>
+<pre><code># Install Tango bindings
+pip install tango (make sure Omniorb and ZMQ are installed)
+
+# Run the device server
+make build
+
+# Run the test cases
+make do-test
+</code></pre>
+
+<hr>
+
+<h2>Device states</h2>
+<table>
+    <tr><th>State</th><th>What it means</th></tr>
+    <tr><td><strong>IDLE</strong></td><td>Telescope is steady and waiting.</td></tr>
+    <tr><td><strong>MOVING</strong></td><td>It is travelling to the target.</td></tr>
+    <tr><td><strong>RECEIVING</strong></td><td>It keeps still and is measuring power.</td></tr>
+    <tr><td><strong>ERROR</strong></td><td>A forced error stopped everything.</td></tr>
+</table>
+
+<hr>
+
+<h2>Attributes</h2>
+<table>
+    <tr><th>Name</th><th>Type</th><th>R/W</th><th>Example</th><th>Description</th></tr>
+    <tr><td>coordinate_x</td><td>float</td><td>R/W</td><td>12.3</td><td>Current X coordinate (deg)</td></tr>
+    <tr><td>coordinate_y</td><td>float</td><td>R/W</td><td>45.0</td><td>Current Y coordinate (deg)</td></tr>
+    <tr><td>power</td><td>float</td><td>R</td><td>0.87</td><td>Last measured power</td></tr>
+    <tr><td>device_state</td><td>string</td><td>R</td><td>"MOVING"</td><td>Human-friendly state name</td></tr>
+</table>
+
+<h3>Device property</h3>
+<table>
+    <tr><th>Property</th><th>Default</th><th>Purpose</th></tr>
+    <tr><td>power_threshold</td><td>1.0</td><td>Log a warning if a power reading rises above this value</td></tr>
+</table>
+
+<hr>
+
+<h2>Commands</h2>
+<table>
+    <tr><th>Command</th><th>In</th><th>Out</th><th>What it does</th></tr>
+    <tr><td>SetTarget</td><td>(x, y) double array</td><td>-</td><td>Start slewing toward the target position.</td></tr>
+    <tr><td>ReadPower</td><td>double (duration seconds)</td><td>"SUCCESS" / "NOT ALLOWED" / "ERROR"</td><td>Start a power measurement.</td></tr>
+    <tr><td>ReadCoordinates</td><td>-</td><td>(x, y) double</td><td>Return the current coordinate instantly.</td></tr>
+    <tr><td>TriggerError</td><td>-</td><td>-</td><td>Put device in <strong>ERROR</strong> state on purpose.</td></tr>
+    <tr><td>ResetDevice</td><td>-</td><td>-</td><td>Clear <strong>ERROR</strong> and go back to <strong>IDLE</strong>.</td></tr>
+</table>
+
+<hr>
+
+<h2>Quick examples (PyTango)</h2>
+<table>
+    <tr><th>Goal</th><th>PyTango snippet</th></tr>
+    <tr>
+        <td>Move to (10, 20)</td>
+        <td><pre><code>import tango
+dev = tango.DeviceProxy("sys/aux_telescope/0")
+dev.SetTarget([10, 20])</code></pre></td>
+    </tr>
+    <tr>
+        <td>Ask where it is</td>
+        <td><pre><code>dev.ReadCoordinates()</code></pre></td>
+    </tr>
+    <tr>
+        <td>Measure power for 5 seconds</td>
+        <td><pre><code>res = dev.ReadPower(5.0)
+print("status:", res)
+import time; time.sleep(5)
+print("power:", dev.power)</code></pre></td>
+    </tr>
+    <tr>
+        <td>Cause & fix an error</td>
+        <td><pre><code>dev.TriggerError()
+dev.ResetDevice()</code></pre></td>
+    </tr>
+</table>
+
+<hr>
+
+<h2>Requirement checklist</h2>
+<table>
+    <tr><th>#</th><th>Requirement</th><th>Status</th></tr>
+    <tr><td>1</td><td>Keep coordinates & power in memory</td><td>✅</td></tr>
+    <tr><td>2</td><td>Move to target at fixed speed</td><td>✅</td></tr>
+    <tr><td>3</td><td>Stop measuring while moving</td><td>✅</td></tr>
+    <tr><td>4</td><td>Random power value per coordinate</td><td>✅</td></tr>
+    <tr><td>5</td><td>State machine (IDLE/MOVING/RECEIVING/ERROR)</td><td>✅</td></tr>
+    <tr><td>6</td><td>Command: set target</td><td>✅</td></tr>
+    <tr><td>7</td><td>Command: read power (duration option)</td><td>✅</td></tr>
+    <tr><td>8</td><td>Command: read coordinates</td><td>✅</td></tr>
+    <tr><td>9</td><td>Command: trigger error</td><td>✅</td></tr>
+    <tr><td>10</td><td>Command: reset from error</td><td>✅</td></tr>
+    <tr><td>11</td><td>Log events & state changes</td><td>✅</td></tr>
+    <tr><td>12</td><td>Warn if power > threshold</td><td>✅</td></tr>
+    <tr><td>13</td><td>Automated tests</td><td>✅</td></tr>
+</table>
+
+<hr>
+
+<p><strong>Web Application :</strong><br>
+Web application added to control the telescope.</p>
+
+</body>
+</html>

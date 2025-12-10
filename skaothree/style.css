@@ -1,0 +1,48 @@
+h1 ,h2,h3,h4{
+  opacity: 1;
+}
+.transbox{
+    
+    position: relative;
+    width: 200px;
+    height : 200px ;
+    border:1px solid blue; 
+    border-top-left-radius:20px  ;
+    border-bottom-right-radius:20px  ;
+    background-color: rgba(89, 197, 197, 0.1);
+    
+    margin: auto; 
+    text-align: center;
+    color: white;
+    
+    
+}
+
+.parent{
+    position: absolute; 
+    
+}
+/* .swiper-pagination-bullet-active {
+    background-color: rgb(255, 255, 255) !important;
+} */
+
+
+span.swiper-pagination-bullet.swiper-pagination-bullet-active {
+    background-color: rgb(255, 255, 255);
+  
+    opacity: 1;
+  }
+  
+  /* target all bullets */
+  .swiper-pagination-bullet {
+    background-color: rgb(158, 27, 27)!important;
+    opacity: 1;
+  }
+  .child {
+    position: absolute; 
+    top: 25%;
+ 
+    width: 100%; 
+    height: 100px; 
+  }
+  html, body {margin: 0; height: 100%; overflow: hidden}

@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LiteGraph Custom Nodes Documentation</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome without Integrity Attribute -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    /********************************************
+     * BASIC & THEME STYLES
+     ********************************************/
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    :root {
+      --bg-color: #fdfdfd;
+      --text-color: #333333;
+      --accent-color: #007BFF;
+      --sidebar-bg: #ffffff;
+      --info-bg: #ffffff;
+      --header-bg: #ffffff;
+      --border-color: #e0e0e0;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+      --search-bg: #ffffff;
+      --search-border: #cccccc;
+      --suggestion-hover-bg: #007BFF;
+      --suggestion-hover-text: #ffffff;
+      --footer-bg: #007BFF;
+      --footer-text: #ffffff;
+    }
+    body.dark-theme {
+      --bg-color: #1e1e1e;
+      --text-color: #f5f5f5;
+      --accent-color: #BB86FC;
+      --sidebar-bg: #2c2c2c;
+      --info-bg: #2c2c2c;
+      --header-bg: #2c2c2c;
+      --border-color: #444444;
+      --shadow-color: rgba(255, 255, 255, 0.1);
+      --search-bg: #3c3c3c;
+      --search-border: #555555;
+      --suggestion-hover-bg: #BB86FC;
+      --suggestion-hover-text: #1e1e1e;
+      --footer-bg: #BB86FC;
+      --footer-text: #1e1e1e;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /********************************************
+     * HEADER
+     ********************************************/
+    header {
+      background-color: var(--header-bg);
+      color: var(--text-color);
+      padding: 1.5rem 2rem;
+      box-shadow: 0 2px 4px var(--shadow-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100px; /* Increased height for header */
+      z-index: 1000;
+      /* Add left padding to account for the sidebar */
+      padding-left: 220px;
+    }
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: calc(100% - 220px - 150px); /* Adjusted for sidebar and theme toggle */
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    header p {
+      font-size: 1rem;
+      color: var(--text-color);
+    }
+    .search-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+    }
+    .search-container input[type="text"] {
+      width: 100%;
+      padding: 0.6rem 2.5rem 0.6rem 1rem;
+      border: 2px solid var(--search-border);
+      border-radius: 25px;
+      font-size: 1rem;
+      outline: none;
+      background-color: var(--search-bg);
+      color: var(--text-color);
+    }
+    .search-container button {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--accent-color);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .suggestions {
+      position: absolute;
+      top: 105%;
+      left: 0;
+      right: 0;
+      background-color: var(--search-bg);
+      border: 1px solid var(--accent-color);
+      border-top: none;
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 1001;
+      border-radius: 0 0 8px 8px;
+      display: none;
+    }
+    .suggestion-item {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid var(--accent-color);
+      font-size: 0.95rem;
+    }
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+    .suggestion-item:hover {
+      background-color: var(--suggestion-hover-bg);
+      color: var(--suggestion-hover-text);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding-right: 20px;
+    }
+    /* Theme Toggle Switch */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+    .theme-toggle input[type="checkbox"] {
+      width: 40px;
+      height: 20px;
+      appearance: none;
+      background-color: var(--search-border);
+      outline: none;
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .theme-toggle input[type="checkbox"]:checked {
+      background-color: var(--accent-color);
+    }
+    .theme-toggle input[type="checkbox"]::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      top: 1px;
+      left: 1px;
+      background-color: #fff;
+      transition: transform 0.3s;
+    }
+    .theme-toggle input[type="checkbox"]:checked::before {
+      transform: translateX(20px);
+    }
+
+    /********************************************
+     * MAIN LAYOUT: SIDEBAR + CONTENT + INFO BOX
+     ********************************************/
+    .main-layout {
+      display: flex;
+      margin-top: 100px; /* Header height */
+      height: calc(100vh - 100px - 40px); /* Total height minus header and footer */
+      overflow: hidden; /* Prevent double scrollbars */
+      position: relative;
+    }
+
+    /* LEFT SIDEBAR (FIXED, WITH SCROLL IF OVERFLOW) */
+    .sidebar {
+      width: 220px;
+      background-color: var(--sidebar-bg);
+      border-right: 1px solid var(--border-color);
+      padding: 1rem;
+      position: fixed;
+      top: 100px; /* Below the header */
+      bottom: 40px; /* Above the footer */
+      left: 0;
+      overflow-y: auto; /* Scroll if content overflows */
+      z-index: 900;
+    }
+    .sidebar h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 2px solid var(--accent-color);
+      padding-bottom: 0.3rem;
+    }
+    .categories-list {
+      list-style: none;
+    }
+    .categories-list li {
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text-color);
+      font-size: 1rem;
+      position: relative;
+      padding-left: 10px;
+    }
+    .categories-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent-color);
+    }
+    .categories-list li:hover {
+      color: var(--accent-color);
+    }
+
+    /* CENTER CONTENT (SCROLLABLE) */
+    .content-area {
+      margin-left: 220px; /* Sidebar width */
+      margin-right: 320px; /* Info box width + spacing */
+      padding: 1rem 2rem;
+      overflow-y: auto; /* Only this section scrolls */
+      height: 100%;
+    }
+    .category-section {
+      margin-bottom: 2rem;
+    }
+    .category-section h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 2px solid var(--accent-color);
+      padding-bottom: 0.3rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+      table-layout: fixed;
+    }
+    table thead th {
+      background-color: var(--accent-color);
+      color: #fff;
+      text-align: left;
+      padding: 0.75rem;
+      font-size: 1rem;
+      word-wrap: break-word;
+    }
+    table td, table th {
+      border: 1px solid var(--accent-color);
+      padding: 0.6rem 0.75rem;
+      font-size: 0.95rem;
+      word-wrap: break-word;
+    }
+    table tbody tr:hover {
+      background-color: rgba(0, 0, 0, 0.03);
+    }
+    .widget-link {
+      color: var(--accent-color);
+      text-decoration: underline;
+      cursor: pointer;
+      margin-right: 1rem;
+    }
+    .widget-link:hover {
+      color: var(--text-color);
+    }
+
+    /* RIGHT INFO BOX (FIXED, WITH SCROLL IF OVERFLOW) */
+    .info-box {
+      width: 300px;
+      background-color: var(--info-bg);
+      border-left: 1px solid var(--border-color);
+      padding: 1rem;
+      position: fixed;
+      top: 100px; /* Below the header */
+      bottom: 40px; /* Above the footer */
+      right: 20px;
+      overflow-y: auto; /* Scroll if content overflows */
+      box-shadow: -2px 0 5px var(--shadow-color);
+      z-index: 900;
+    }
+    .info-box h4 {
+      margin-bottom: 0.5rem;
+      font-size: 1.2rem;
+      color: var(--accent-color);
+    }
+    .info-box p {
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    /********************************************
+     * FOOTER
+     ********************************************/
+    footer {
+      background-color: var(--footer-bg);
+      color: var(--footer-text);
+      text-align: center;
+      padding: 0.8rem 2rem;
+      font-size: 0.85rem;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      box-shadow: 0 -2px 4px var(--shadow-color);
+      z-index: 1000;
+    }
+
+    /********************************************
+     * RESPONSIVE DESIGN
+     ********************************************/
+    @media (max-width: 1200px) {
+      /* Reduce sidebar and info box widths on large screens */
+      .sidebar {
+        width: 200px;
+      }
+      header {
+        padding-left: 200px; /* Adjust padding to match sidebar width */
+      }
+      .content-area {
+        margin-left: 200px;
+        margin-right: 300px;
+      }
+      .info-box {
+        width: 280px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      /* Further reduce sidebar and info box widths */
+      .sidebar {
+        width: 180px;
+      }
+      header {
+        padding-left: 180px;
+      }
+      .content-area {
+        margin-left: 180px;
+        margin-right: 280px;
+      }
+      .info-box {
+        width: 260px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      /* Hide sidebar and info box on small screens */
+      .sidebar, .info-box {
+        display: none;
+      }
+      /* Remove left padding from header */
+      header {
+        padding-left: 20px; /* Minimal padding */
+        flex-direction: column;
+        align-items: flex-start;
+        height: auto;
+      }
+      .header-left {
+        max-width: 100%;
+      }
+      /* Adjust content area to occupy full width */
+      .content-area {
+        margin: 100px 20px 40px 20px; /* Header height + spacing */
+      }
+      /* Adjust footer padding */
+      footer {
+        padding: 0.5rem 1rem;
+      }
+      /* Ensure search container fits */
+      .search-container {
+        max-width: 100%;
+      }
+    }
+
+    /* Prevent horizontal scroll */
+    body, html {
+      overflow-x: hidden;
+    }
+
+    /* Adjust table responsiveness */
+    table {
+      width: 100%;
+      overflow-x: auto;
+    }
+    @media (max-width: 600px) {
+      table thead {
+        display: none;
+      }
+      table, table tbody, table tr, table td {
+        display: block;
+        width: 100%;
+      }
+      table tr {
+        margin-bottom: 1rem;
+      }
+      table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+      }
+      table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 50%;
+        padding-left: 1rem;
+        font-weight: bold;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <h1>LiteGraph Custom Nodes Documentation</h1>
+      <!-- <p>Explore various nodes, their functionalities, widgets, and how to integrate them seamlessly.</p> -->
+      <!-- SEARCH BAR -->
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search nodes or widgets..." autocomplete="off"/>
+        <button id="searchBtn"><i class="fas fa-search"></i></button>
+        <div id="suggestions" class="suggestions"></div>
+      </div>
+    </div>
+    <div class="header-right">
+      <!-- Theme Toggle Switch -->
+      <label class="theme-toggle">
+        <input type="checkbox" id="themeToggle">
+        <i class="fas fa-moon"></i>
+      </label>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div class="main-layout">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <h2>Categories</h2>
+      <ul class="categories-list" id="categoriesList">
+        <!-- Dynamically populated -->
+      </ul>
+    </aside>
+
+    <!-- CENTER CONTENT -->
+    <div class="content-area" id="contentArea">
+      <!-- Tables per category will be inserted here -->
+    </div>
+
+    <!-- RIGHT INFO BOX -->
+    <aside class="info-box" id="infoBox">
+      <h4 id="infoTitle">Information</h4>
+      <p id="infoDesc">Click on any node or widget to see more details here.</p>
+    </aside>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    &copy; 2025 tenpointnine. All rights reserved.
+  </footer>
+
+  <!-- JavaScript for Functionality -->
+  <script>
+    /***********************************************************
+     * 1) DATA STRUCTURE: CATEGORIES, NODES, WIDGETS
+     ***********************************************************/
+    const categoriesData = [
+      // Input Nodes
+      {
+        name: "input",
+        nodes: [
+          {
+            nodeName: "const",
+            widgets: ["Value Input - Sets a constant numeric value."],
+            description: "Outputs a constant numeric value."
+          },
+          {
+            nodeName: "const_string",
+            widgets: ["Text Input - Sets a constant string value."],
+            description: "Outputs a constant string value."
+          }
+        ]
+      },
+      // Tango Nodes
+      {
+        name: "tango",
+        nodes: [
+          {
+            nodeName: "TangoDeviceNode",
+            widgets: ["Device Selection - Choose a Tango device."],
+            description: "Lists and selects Tango devices for further operations."
+          },
+          {
+            nodeName: "TangoMonitorNode",
+            widgets: ["Monitor Toggle - Start/Stop monitoring attributes."],
+            description: "Monitors Tango device attributes in real-time."
+          },
+          {
+            nodeName: "readAttribute/manual",
+            widgets: ["Manual Read - Triggers attribute read."],
+            description: "Reads a Tango attribute on demand."
+          },
+          {
+            nodeName: "readAttributePollButton",
+            widgets: ["Poll Button - Polls the attribute at intervals."],
+            description: "Polls a Tango attribute at defined intervals."
+          },
+          {
+            nodeName: "setAttribute",
+            widgets: ["Value Input - Sets the attribute value."],
+            description: "Writes a value to a Tango attribute."
+          },
+          {
+            nodeName: "device_subscription",
+            widgets: ["Subscription Toggle - Subscribes to device events."],
+            description: "Subscribes to Tango device events."
+          },
+          {
+            nodeName: "pingDevice",
+            widgets: ["Ping Trigger - Sends ping requests."],
+            description: "Pings a Tango device to check connectivity."
+          },
+          {
+            nodeName: "commandDevice",
+            widgets: ["Command Input - Executes device command."],
+            description: "Executes a specified command on the Tango device."
+          }
+        ]
+      },
+      // Widget Nodes
+      {
+        name: "widget",
+        nodes: [
+          {
+            nodeName: "knob",
+            widgets: ["Knob Control - Adjust values via knob interface."],
+            description: "An interactive knob widget for value adjustments."
+          },
+          {
+            nodeName: "hslider",
+            widgets: ["Horizontal Slider - Adjusts values via slider."],
+            description: "A horizontal slider widget for smooth value changes."
+          }
+        ]
+      },
+      // Custom Nodes
+      {
+        name: "my_nodes",
+        nodes: [
+          {
+            nodeName: "DeviceList",
+            widgets: ["List Display - Shows a list of devices.", "Refresh Button - Updates the device list."],
+            description: "Displays and manages a dynamic list of devices."
+          }
+        ]
+      },
+      {
+        name: "custom",
+        nodes: [
+          {
+            nodeName: "execute_python",
+            widgets: ["Script Input - Enter Python code.", "Run Button - Executes the script."],
+            description: "Executes custom Python scripts within the graph."
+          }
+        ]
+      },
+      // Testing Nodes
+      {
+        name: "Testing",
+        nodes: [
+          {
+            nodeName: "step_sequencer",
+            widgets: ["Step Control - Moves to next step."],
+            description: "Executes steps in sequence for testing flows."
+          },
+          {
+            nodeName: "Clause",
+            widgets: ["Condition Editor - Defines BDD clauses."],
+            description: "Creates a BDD-style testing clause."
+          }
+        ]
+      },
+      // Alert Nodes
+      {
+        name: "alert",
+        nodes: [
+          {
+            nodeName: "AlertNode",
+            widgets: ["Alert Message - Displays alert text."],
+            description: "Triggers or displays an alert message."
+          }
+        ]
+      },
+      // Math Nodes
+      {
+        name: "math",
+        nodes: [
+          {
+            nodeName: "log_simplifier",
+            widgets: ["Expression Input - Enter log expression."],
+            description: "Simplifies logarithmic expressions."
+          },
+          {
+            nodeName: "sum",
+            widgets: ["Operand A", "Operand B"],
+            description: "Adds two numbers and outputs the result."
+          },
+          {
+            nodeName: "divide",
+            widgets: ["Dividend", "Divisor"],
+            description: "Divides one number by another."
+          },
+          {
+            nodeName: "multiply",
+            widgets: ["Factor A", "Factor B"],
+            description: "Multiplies two numbers."
+          },
+          {
+            nodeName: "subtract",
+            widgets: ["Minuend", "Subtrahend"],
+            description: "Subtracts the second number from the first."
+          },
+          {
+            nodeName: "fact",
+            widgets: ["Operand - Factorial calculation."],
+            description: "Computes the factorial of a number."
+          },
+          {
+            nodeName: "check_prime",
+            widgets: ["Value Input - Number to check."],
+            description: "Checks if a given number is prime."
+          },
+          {
+            nodeName: "diffrential",
+            widgets: ["Function Input - Expression to differentiate."],
+            description: "Computes the derivative of a function."
+          },
+          {
+            nodeName: "random_generator",
+            widgets: ["Range Inputs - Specify min/max."],
+            description: "Generates a random number within a specified range."
+          }
+        ]
+      },
+      // Condition Nodes
+      {
+        name: "condition",
+        nodes: [
+          {
+            nodeName: "true_false",
+            widgets: ["Toggle - True/False switch."],
+            description: "Outputs true or false based on a toggle."
+          },
+          {
+            nodeName: "check_if_equal",
+            widgets: ["Value A", "Value B"],
+            description: "Checks if two values are equal."
+          },
+          {
+            nodeName: "check_if_greater_or_equal",
+            widgets: ["Value A", "Value B"],
+            description: "Checks if A is greater than or equal to B."
+          },
+          {
+            nodeName: "check_if_less_or_equal",
+            widgets: ["Value A", "Value B"],
+            description: "Checks if A is less than or equal to B."
+          },
+          {
+            nodeName: "check_if_greater",
+            widgets: ["Value A", "Value B"],
+            description: "Checks if A is greater than B."
+          },
+          {
+            nodeName: "check_if_less",
+            widgets: ["Value A", "Value B"],
+            description: "Checks if A is less than B."
+          },
+          {
+            nodeName: "check_if_not_equal",
+            widgets: ["Value A", "Value B"],
+            description: "Checks if A is not equal to B."
+          }
+        ]
+      },
+      // Data Type Nodes
+      {
+        name: "datatype",
+        nodes: [
+          {
+            nodeName: "string",
+            widgets: ["String Input - Set a string value."],
+            description: "Stores and outputs a string."
+          },
+          {
+            nodeName: "int",
+            widgets: ["Integer Input - Set an integer value."],
+            description: "Stores and outputs an integer."
+          }
+        ]
+      },
+      // Control Nodes
+      {
+        name: "control",
+        nodes: [
+          {
+            nodeName: "while_loop",
+            widgets: ["Condition - Loop condition."],
+            description: "Executes a block repeatedly while the condition is true."
+          },
+          {
+            nodeName: "clock",
+            widgets: ["Interval Input - Time step."],
+            description: "Emits ticks at defined intervals."
+          },
+          {
+            nodeName: "repeater",
+            widgets: ["Iterations - Number of repeats."],
+            description: "Runs a loop for a specified number of iterations."
+          }
+        ]
+      },
+      // Utility Nodes
+      {
+        name: "Utility",
+        nodes: [
+          {
+            nodeName: "storage",
+            widgets: ["Key/Value - Data to store."],
+            description: "Stores data in persistent or session storage."
+          },
+          {
+            nodeName: "counter",
+            widgets: ["Start Value", "Step Value"],
+            description: "Counts up/down with each trigger."
+          },
+          {
+            nodeName: "script_loader",
+            widgets: ["Script URL - Path to script."],
+            description: "Dynamically loads an external script."
+          },
+          {
+            nodeName: "delay",
+            widgets: ["Delay Time - Wait period."],
+            description: "Delays signal output by a specified time."
+          }
+        ]
+      },
+      // Event Nodes
+      {
+        name: "events",
+        nodes: [
+          {
+            nodeName: "delay_event",
+            widgets: ["Event Delay - Time to delay event."],
+            description: "Delays an event before passing it on."
+          },
+          {
+            nodeName: "cron_event",
+            widgets: ["Cron Expression", "Enable Toggle"],
+            description: "Triggers events based on a cron schedule."
+          },
+          {
+            nodeName: "TriggerNode",
+            widgets: ["Manual Trigger - Fires an event."],
+            description: "A manual trigger node to start flows."
+          }
+        ]
+      },
+      // Output Nodes
+      {
+        name: "output",
+        nodes: [
+          {
+            nodeName: "ExpressionNode",
+            widgets: ["Expression Input - Define expression."],
+            description: "Evaluates a custom expression and outputs the result."
+          },
+          {
+            nodeName: "MacroNode",
+            widgets: ["Macro Editor - Define macros."],
+            description: "Executes user-defined macro expressions."
+          }
+        ]
+      },
+      // Display Nodes
+      {
+        name: "Display",
+        nodes: [
+          {
+            nodeName: "DynamicGraph",
+            widgets: ["Data Input - Plots dynamic graph."],
+            description: "Displays a real-time graph of incoming data."
+          },
+          {
+            nodeName: "SineWave",
+            widgets: ["Frequency", "Amplitude"],
+            description: "Generates a sine wave output for visualization."
+          },
+          {
+            nodeName: "DynamicGraphs",
+            widgets: ["Multiple Data Inputs - Plots multiple series."],
+            description: "Visualizes multiple streams of data in real-time."
+          },
+          {
+            nodeName: "Slider",
+            widgets: ["Slider Input - Adjust a numeric value."],
+            description: "Interactive slider for user input."
+          }
+        ]
+      },
+      // Kubernetes Nodes
+      {
+        name: "kubernetes",
+        nodes: [
+          {
+            nodeName: "namespace",
+            widgets: ["Namespace Input - K8s namespace."],
+            description: "Manages or selects a Kubernetes namespace."
+          },
+          {
+            nodeName: "pod",
+            widgets: ["Pod Selector - Choose a K8s pod."],
+            description: "Displays and manages Kubernetes pods."
+          }
+        ]
+      },
+      // Repeater Nodes
+      {
+        name: "repeater",
+        nodes: [
+          {
+            nodeName: "a",
+            widgets: ["Clock Interval - Time step."],
+            description: "Clock node repeated here for demonstration."
+          },
+          {
+            nodeName: "b",
+            widgets: ["Loop Count - Number of iterations."],
+            description: "For loop repeated here for demonstration."
+          },
+          {
+            nodeName: "c",
+            widgets: ["Condition - While condition."],
+            description: "While loop repeated here for demonstration."
+          },
+          {
+            nodeName: "u1",
+            widgets: ["Counter - Start/Step."],
+            description: "Counter node repeated here for demonstration."
+          },
+          {
+            nodeName: "u",
+            widgets: ["Check Prime - Value input."],
+            description: "IsPrime node repeated here for demonstration."
+          }
+        ]
+      },
+      // Watch Nodes
+      {
+        name: "watch",
+        nodes: [
+          {
+            nodeName: "event_watch",
+            widgets: ["Event Watch - Subscribes to events."],
+            description: "Observes events and logs or outputs them."
+          },
+          {
+            nodeName: "basic/event_watch",
+            widgets: ["Event Watch - Basic subscription."],
+            description: "Basic event watch node."
+          }
+        ]
+      },
+      // Basic Nodes
+      {
+        name: "basic",
+        nodes: [
+          {
+            nodeName: "const",
+            widgets: ["Numeric Constant - Sets a constant value."],
+            description: "Another reference to a constant node."
+          },
+          {
+            nodeName: "const_string",
+            widgets: ["String Constant - Sets a constant string."],
+            description: "Another reference to a constant string node."
+          },
+          {
+            nodeName: "watch",
+            widgets: ["Watch Value - Observes an input."],
+            description: "Displays the value in real-time for debugging."
+          },
+          {
+            nodeName: "event_watch",
+            widgets: ["Event Watch - Observes an event."],
+            description: "Event watch repeated in 'basic' category."
+          }
+        ]
+      }
+    ];
+
+    /***********************************************************
+     * 2) RENDER SIDEBAR & MAIN CONTENT
+     ***********************************************************/
+    const categoriesListEl = document.getElementById("categoriesList");
+    const contentAreaEl = document.getElementById("contentArea");
+    const infoTitleEl = document.getElementById("infoTitle");
+    const infoDescEl = document.getElementById("infoDesc");
+
+    // Render Sidebar Categories
+    function renderSidebar() {
+      categoriesData.forEach(cat => {
+        const li = document.createElement("li");
+        li.textContent = cat.name;
+        li.addEventListener("click", () => {
+          // Scroll to the respective category section
+          const catSection = document.getElementById("cat-" + cat.name);
+          if (catSection) {
+            catSection.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+        categoriesListEl.appendChild(li);
+      });
+    }
+
+    // Render Tables for Each Category
+    function renderCategoryTables() {
+      categoriesData.forEach(cat => {
+        // Create Category Section
+        const section = document.createElement("div");
+        section.classList.add("category-section");
+        section.id = "cat-" + cat.name;
+
+        // Category Heading
+        const heading = document.createElement("h3");
+        heading.textContent = cat.name;
+        section.appendChild(heading);
+
+        // Create Table
+        const table = document.createElement("table");
+
+        // Table Head
+        const thead = document.createElement("thead");
+        const trHead = document.createElement("tr");
+        ["Node", "Widgets", "Description"].forEach(text => {
+          const th = document.createElement("th");
+          th.textContent = text;
+          trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+        table.appendChild(thead);
+
+        // Table Body
+        const tbody = document.createElement("tbody");
+        cat.nodes.forEach(node => {
+          const tr = document.createElement("tr");
+
+          // Node Column
+          const tdNode = document.createElement("td");
+          tdNode.textContent = node.nodeName;
+          tdNode.classList.add("node-link");
+          tdNode.addEventListener("click", () => {
+            showInfo(node.nodeName, node.description);
+          });
+          tdNode.setAttribute("data-label", "Node");
+          tr.appendChild(tdNode);
+
+          // Widgets Column
+          const tdWidgets = document.createElement("td");
+          if (node.widgets && node.widgets.length > 0) {
+            node.widgets.forEach(widget => {
+              const [wName, wInfo] = widget.split(" - ");
+              const widgetSpan = document.createElement("span");
+              widgetSpan.textContent = wName;
+              widgetSpan.classList.add("widget-link");
+              widgetSpan.addEventListener("click", (e) => {
+                e.stopPropagation(); // Prevent triggering node info
+                showInfo(wName, wInfo || "No widget details provided.");
+              });
+              widgetSpan.setAttribute("data-label", "Widget");
+              tdWidgets.appendChild(widgetSpan);
+            });
+          } else {
+            tdWidgets.textContent = "No widgets";
+            tdWidgets.setAttribute("data-label", "Widgets");
+          }
+          tr.appendChild(tdWidgets);
+
+          // Description Column
+          const tdDesc = document.createElement("td");
+          tdDesc.textContent = node.description || "No description available.";
+          tdDesc.setAttribute("data-label", "Description");
+          tr.appendChild(tdDesc);
+
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        section.appendChild(table);
+
+        // Append Section to Content Area
+        contentAreaEl.appendChild(section);
+      });
+    }
+
+    // Show Information in Info Box
+    function showInfo(title, desc) {
+      infoTitleEl.textContent = title;
+      infoDescEl.textContent = desc;
+    }
+
+    /***********************************************************
+     * 3) SEARCH FUNCTIONALITY
+     ***********************************************************/
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const suggestionsEl = document.getElementById("suggestions");
+
+    // Build Search Index
+    let searchIndex = [];
+    function buildSearchIndex() {
+      categoriesData.forEach(cat => {
+        cat.nodes.forEach(node => {
+          // Add Node
+          searchIndex.push({
+            category: cat.name,
+            name: node.nodeName,
+            description: node.description,
+            type: "node"
+          });
+          // Add Widgets
+          if (node.widgets && node.widgets.length > 0) {
+            node.widgets.forEach(widget => {
+              const [wName, wInfo] = widget.split(" - ");
+              searchIndex.push({
+                category: cat.name,
+                name: wName.trim(),
+                description: wInfo ? wInfo.trim() : "No widget details provided.",
+                type: "widget"
+              });
+            });
+          }
+        });
+      });
+    }
+
+    // Filter Search Results
+    function filterSearch(query) {
+      const q = query.toLowerCase();
+      return searchIndex.filter(item => {
+        return (
+          item.category.toLowerCase().includes(q) ||
+          item.name.toLowerCase().includes(q) ||
+          (item.description && item.description.toLowerCase().includes(q))
+        );
+      });
+    }
+
+    // Display Suggestions
+    function showSuggestions(results) {
+      suggestionsEl.innerHTML = "";
+      results.forEach(item => {
+        const div = document.createElement("div");
+        div.classList.add("suggestion-item");
+        if (item.type === "node") {
+          div.innerHTML = `<strong>Node:</strong> ${item.name} <em>(${item.category})</em>`;
+        } else {
+          div.innerHTML = `<strong>Widget:</strong> ${item.name} <em>(${item.category})</em>`;
+        }
+        div.addEventListener("click", () => {
+          // Scroll to Category
+          const catSection = document.getElementById("cat-" + item.category);
+          if (catSection) {
+            catSection.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+          // Show Info
+          showInfo(item.name, item.description);
+          // Hide Suggestions
+          suggestionsEl.style.display = "none";
+        });
+        suggestionsEl.appendChild(div);
+      });
+      suggestionsEl.style.display = "block";
+    }
+
+    // Handle Search Input
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.trim();
+      if (query === "") {
+        suggestionsEl.style.display = "none";
+        return;
+      }
+      const results = filterSearch(query).slice(0, 10); // Limit to top 10
+      if (results.length > 0) {
+        showSuggestions(results);
+      } else {
+        suggestionsEl.style.display = "none";
+      }
+    });
+
+    // Handle Search Button Click
+    searchBtn.addEventListener("click", () => {
+      const query = searchInput.value.trim();
+      if (query === "") {
+        suggestionsEl.style.display = "none";
+        return;
+      }
+      const results = filterSearch(query).slice(0, 10);
+      if (results.length > 0) {
+        showSuggestions(results);
+      } else {
+        suggestionsEl.style.display = "none";
+      }
+    });
+
+    // Hide Suggestions When Clicking Outside
+    document.addEventListener("click", (event) => {
+      if (!suggestionsEl.contains(event.target) && event.target !== searchInput && event.target !== searchBtn) {
+        suggestionsEl.style.display = "none";
+      }
+    });
+
+    /***********************************************************
+     * 4) THEME TOGGLE FUNCTIONALITY
+     ***********************************************************/
+    const themeToggle = document.getElementById("themeToggle");
+
+    // Check localStorage for theme preference
+    if (localStorage.getItem("theme") === "dark") {
+      themeToggle.checked = true;
+      document.body.classList.add("dark-theme");
+    }
+
+    themeToggle.addEventListener("change", () => {
+      if (themeToggle.checked) {
+        document.body.classList.add("dark-theme");
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.body.classList.remove("dark-theme");
+        localStorage.setItem("theme", "light");
+      }
+    });
+
+    /***********************************************************
+     * 5) INITIALIZE PAGE
+     ***********************************************************/
+    window.addEventListener("DOMContentLoaded", () => {
+      // Populate Sidebar and Content
+      renderSidebar();
+      renderCategoryTables();
+      buildSearchIndex();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r119/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  </head>
+  <body>
+    <script>
+      // Set up scene, camera, and renderer
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+      var renderer = new THREE.WebGLRenderer();
+      renderer.setSize( window.innerWidth, window.innerHeight );
+      document.body.appendChild( renderer.domElement );
+      
+      // Add lights to the scene
+      var light = new THREE.DirectionalLight( 0xffffff, 1 );
+      light.position.set( 1, 1, 1 );
+      scene.add( light );
+      var light = new THREE.DirectionalLight( 0xffffff, 1 );
+      light.position.set( -1, -1, -1 );
+      scene.add( light );
+      
+      // Create spheres for the planets
+      var sunGeometry = new THREE.SphereGeometry( 5, 32, 32 );
+      var sunMaterial = new THREE.MeshLambertMaterial( { color: 0xffd700 } );
+      var sun = new THREE.Mesh( sunGeometry, sunMaterial );
+      scene.add( sun );
+      
+      var mercuryGeometry = new THREE.SphereGeometry( 0.5, 32, 32 );
+      var mercuryMaterial = new THREE.MeshLambertMaterial( { color: 0x9b9b9b } );
+      var mercury = new THREE.Mesh( mercuryGeometry, mercuryMaterial );
+      mercury.position.set( 10, 0, 0 );
+      scene.add( mercury );
+      
+      var venusGeometry = new THREE.SphereGeometry( 1, 32, 32 );
+      var venusMaterial = new THREE.MeshLambertMaterial( { color: 0xff69b4 } );
+      var venus = new THREE.Mesh( venusGeometry, venusMaterial );
+      venus.position.set( 20, 0, 0 );
+      scene.add( venus );
+      
+      var earthGeometry = new THREE.SphereGeometry( 1.5, 32, 32 );
+      var earthMaterial = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
+      var earth = new THREE.Mesh( earthGeometry, earthMaterial );
+      earth.position.set( 30, 0, 0 );
+      scene.add( earth );
+      
+      var marsGeometry = new THREE.SphereGeometry( 1, 32, 32 );
+      var marsMaterial = new THREE.MeshLambertMaterial( { color: 0xff0000 } );
+      var mars = new THREE.Mesh( marsGeometry, marsMaterial );

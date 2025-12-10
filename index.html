@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>challengepi.com</title>
+  <style>
+    /* ----------------------------
+       GENERAL RESET & STYLING
+    ---------------------------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Roboto", sans-serif;
+      transition: all 0.3s ease-in-out;
+    }
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow-x: hidden; /* Prevent horizontal scrolling */
+      overflow-y: hidden; /* Prevent vertical scrolling globally */
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+    ul, li {
+      list-style: none;
+    }
+
+    /* Container for entire presentation */
+    #presentation {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: row;
+      transition: transform 0.5s ease-in-out;
+    }
+
+    /* Each slide container */
+    .slide {
+      min-width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: row; /* Two-column layout */
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: left; /* Left alignment for text */
+      position: relative;
+      overflow: hidden; /* Ensure no overflow within slides */
+    }
+
+    /* Content container within each slide */
+    .slide-content {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Left Box for Text */
+    .slide-text {
+      flex: 1;
+      background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 15px var(--neon-glow);
+      backdrop-filter: blur(10px); /* Optional: Adds a blur effect */
+      margin-right: 1.5rem;
+    }
+
+    /* Slide content styling */
+    .slide-text h1 {
+      margin-bottom: 1rem;
+      font-size: 2.5rem;
+      letter-spacing: 2px;
+      position: relative;
+      z-index: 1;
+      color: var(--text-color);
+    }
+    .slide-text p {
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto 1.5rem auto;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+      color: var(--text-color);
+    }
+    .slide-text button,
+    .slide-text a {
+      margin-top: 1rem;
+      background-color: transparent;
+      border: 2px solid currentColor;
+      padding: 0.6rem 1.2rem;
+      color: inherit;
+      cursor: pointer;
+      border-radius: 2rem;
+      text-decoration: none;
+      font-size: 1rem;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 10px var(--neon-glow);
+    }
+    .slide-text button:hover,
+    .slide-text a:hover {
+      background-color: currentColor;
+      color: var(--bg-color);
+      box-shadow: 0 0 20px var(--neon-glow);
+    }
+
+    /* Right Image Container */
+    .slide-image-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .slide-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 15px var(--neon-glow);
+      position: relative;
+      z-index: 1;
+      cursor: pointer; /* So users know it's clickable */
+    }
+
+    /* Curvy dividers between sections (just aesthetic) */
+    .curvy-divider {
+      position: absolute;
+      width: 100%;
+      height: 150px;
+      bottom: 0;
+      left: 0;
+      background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4MCIgaGVpZ2h0PSIxNTAiIHZpZXdCb3g9IjAgMCAxMjgwIDE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCwwQzAsMCw1NDIuMywxNDIuMiw5NjcuNywxNDIuMkMxMTg3LjcsMTQyLjIsMTI4MCwxMjYuNywxMjgwLDEyNi43TDk2OC42LDcwLjNDNjc1LjMtNS45LDM5OS45LDAtMCwwIiBmaWxsPSJjdXJyZW50Q29sb3IiIG9wYWNpdHk9IjAuMyI+PC9wYXRoPjwvc3ZnPg==');
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      transform: translateY(100%);
+      z-index: 0;
+    }
+
+    /* --------------
+       THEME HANDLING
+       We'll store colors in CSS custom properties
+    -------------- */
+    :root {
+      /* Default Light Theme */
+      --bg-color: #f5f5f5;
+      --text-color: #333333;
+      --accent-color: #007BFF;
+      --neon-glow: rgba(0, 255, 200, 0.6);
+    }
+
+    body.light-theme {
+      --bg-color: #f5f5f5;
+      --text-color: #333;
+      --accent-color: #007BFF;
+      --neon-glow: rgba(0, 255, 200, 0.4);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+    body.dark-theme {
+      --bg-color: #111111;
+      --text-color: #f5f5f5;
+      --accent-color: #BB86FC;
+      --neon-glow: rgba(187, 134, 252, 0.4);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+    body.neon-theme {
+      /* White Lined Grid Background with Dimmed Lines */
+      background-color: #000000; /* Black base */
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.2) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.2) 1px, transparent 1px);
+      background-size: 50px 50px;
+
+      /* Text Color */
+      --text-color: #39ff14; /* Bright neon green */
+      /* Accent Color */
+      --accent-color: #ff00ff; /* Neon pink */
+      /* Glow Effect */
+      --neon-glow: rgba(57, 255, 20, 0.8); /* Enhanced green glow */
+      
+      color: var(--text-color);
+    }
+    body.skao-theme {
+      /* SKAO Gradient Background with Colored Grid Lines */
+      background-image:
+        linear-gradient(90deg, #0d00a5 13%, #e4005f 87%),
+        linear-gradient(to right, #ffcc00 1px, transparent 1px),
+        linear-gradient(to bottom, #ffcc00 1px, transparent 1px);
+      background-size: 100%,
+        25px 25px,
+        25px 25px;
+      background-repeat: no-repeat,
+        repeat,
+        repeat;
+
+      /* Text Color */
+      --text-color: #ffffff;
+      /* Accent Color */
+      --accent-color: #ffcc00;
+      /* Glow Effect */
+      --neon-glow: rgba(255, 204, 0, 0.6);
+      
+      color: var(--text-color);
+    }
+
+    /* Slide background and text color binding to variables */
+    .slide {
+      background-color: transparent;
+      color: var(--text-color);
+    }
+
+    /* Neon effect for headings (particularly in neon or skao theme) */
+    .neon-heading {
+      text-shadow: 0 0 12px var(--neon-glow), 0 0 24px var(--neon-glow);
+    }
+
+    /* --------------
+       THEME SWITCHER
+    -------------- */
+    #theme-selector {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 1000;
+    }
+    #theme-selector select {
+      padding: 0.4rem 0.8rem;
+      border-radius: 10px;
+      border: 2px solid var(--text-color);
+      background: none;
+      color: var(--text-color);
+      font-size: 0.9rem;
+      appearance: none;
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--neon-glow);
+      outline: none;
+      /* Dropdown arrow */
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333333' d='M6 8.4L2.4 4.8l1.2-1.2L6 6l2.4-2.4 1.2 1.2z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.8rem center;
+      background-size: 12px 12px;
+    }
+    #theme-selector select:focus {
+      border-color: var(--accent-color);
+    }
+
+    /* --------------
+       SLIDER NAVIGATION
+    -------------- */
+    .nav-arrows {
+      position: fixed;
+      bottom: 1rem;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 2rem;
+      z-index: 999;
+    }
+    .nav-arrows button {
+      background-color: transparent;
+      border: 2px solid var(--text-color);
+      color: var(--text-color);
+      padding: 0.6rem 1.2rem;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--neon-glow);
+    }
+    .nav-arrows button:hover {
+      background-color: var(--text-color);
+      color: var(--bg-color);
+      box-shadow: 0 0 16px var(--neon-glow);
+    }
+
+    /* --------------
+       RETURN TO MAIN MENU BUTTON
+    -------------- */
+    .return-button {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      background: none;
+      border: 2px solid var(--text-color);
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      cursor: pointer;
+      color: var(--text-color);
+      font-size: 0.9rem;
+      text-decoration: none;
+      box-shadow: 0 0 8px var(--neon-glow);
+      z-index: 1001; /* Ensure it's above other elements */
+    }
+
+    .return-button:hover {
+      background-color: var(--text-color);
+      color: var(--bg-color);
+      box-shadow: 0 0 16px var(--neon-glow);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      /* Adjust the slide-content for medium screens */
+      .slide-content {
+        flex-direction: column;
+      }
+      .slide-text {
+        margin-right: 0;
+        margin-bottom: 1.5rem;
+      }
+      .slide-image-container {
+        padding: 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      /* Adjust "Main Menu" button for smaller screens */
+      .return-button {
+        top: 1rem;
+        left: 1rem;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+      }
+
+      /* Adjust nav-arrows for smaller screens */
+      .nav-arrows {
+        padding: 0 1rem;
+      }
+
+      /* Adjust slide content for smaller screens */
+      .slide-text h1 {
+        font-size: 1.8rem;
+      }
+      .slide-text p {
+        font-size: 1rem;
+      }
+      .slide {
+        padding: 1rem;
+      }
+      .slide-image {
+        max-width: 90%;
+      }
+
+      /* Last Slide Specific Adjustments */
+      .slide:last-child {
+        padding-bottom: 4rem; /* Extra space to accommodate buttons */
+      }
+    }
+
+    /* --------------
+       NEON THEME SPECIFIC STYLES
+    -------------- */
+    body.neon-theme .slide-image {
+      box-shadow: 0 0 20px var(--neon-glow);
+    }
+
+    body.neon-theme .return-button,
+    body.neon-theme .nav-arrows button,
+    body.neon-theme #theme-selector select {
+      box-shadow: 0 0 12px var(--neon-glow);
+    }
+
+    body.neon-theme .return-button:hover,
+    body.neon-theme .nav-arrows button:hover,
+    body.neon-theme #theme-selector select:hover {
+      box-shadow: 0 0 24px var(--neon-glow);
+    }
+
+    /* --------------
+       SKAO THEME SPECIFIC STYLES
+    -------------- */
+    body.skao-theme .slide-image {
+      box-shadow: 0 0 10px var(--neon-glow);
+    }
+
+    body.skao-theme .return-button,
+    body.skao-theme .nav-arrows button,
+    body.skao-theme #theme-selector select {
+      box-shadow: 0 0 8px var(--neon-glow);
+    }
+
+    body.skao-theme .return-button:hover,
+    body.skao-theme .nav-arrows button:hover,
+    body.skao-theme #theme-selector select:hover {
+      box-shadow: 0 0 16px var(--neon-glow);
+    }
+  </style>
+</head>
+<body class="light-theme">
+  <!-- THEME SELECTOR DROPDOWN (Visible on all devices) -->
+  <div id="theme-selector">
+    <select id="themeDropdown" onchange="setTheme(this.value)">
+      <option value="light-theme">Light</option>
+      <option value="dark-theme">Dark</option>
+      <option value="neon-theme">Neon</option>
+      <option value="skao-theme">SKAO</option>
+    </select>
+  </div>
+
+  <!-- RETURN TO MAIN MENU BUTTON (Single Instance) -->
+  <a href="#" class="return-button">Main Menu</a>
+
+  <!-- SLIDER NAV ARROWS -->
+  <div class="nav-arrows">
+    <button id="prevBtn">&#9664;</button>
+    <button id="nextBtn">&#9654;</button>
+  </div>
+
+  <!-- PRESENTATION CONTAINER -->
+  <div id="presentation">
+    <!-- Slide 1 -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1 class="neon-heading">challengepi.com</h1>
+          <p>
+            Welcome to <strong>challengepi.com</strong>, a next-gen programmable GUI tool 
+            built for TANGO-based systems. Harness real-time data visualization, advanced 
+            test cases, integrated JIRA/DB/monitoring, and Python-based custom widgets.
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="/images/bdd.gif" 
+            alt="Welcome to ChallengePi" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- Slide 2 -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1>1. TANGO Integration</h1>
+          <p>
+            Connect to TANGO devices effortlessly. Our easy-to-use interface helps 
+            you read and control device attributes, command executions, and 
+            status checks — all in one place.
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="images/tango_attribute.png" 
+            alt="TANGO Integration" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- Slide 3 -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1>2. Advanced Data Visualization</h1>
+          <p>
+            Monitor live data streams, generate charts, and build interactive dashboards 
+            to gain insights into your TANGO-based system performance. 
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="/images/data.png" 
+            alt="Advanced Data Visualization" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- Slide 4 -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1>3. Database Client Integration</h1>
+          <p>
+            Seamlessly connect to popular databases, run queries, visualize metrics, 
+            and store or retrieve your TANGO logs for quick audits and analytics.
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="/images/database.png" 
+            alt="Database Client Integration" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- Slide 5 -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1>4. Monitoring Board</h1>
+          <p>
+            Our all-in-one monitoring board allows you to track device statuses, 
+            system events, and alerts in real-time. Remain on top of your system’s 
+            health without juggling multiple tools.
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="images/testcase.gif" 
+            alt="Monitoring Board" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- Slide 6 -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1>5. Python Integration</h1>
+          <p>
+            Extend functionality by writing custom scripts in Python. Automate complex tasks, 
+            develop specialized widgets, or integrate your unique data processing pipelines.
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="images/customruntime.gif" 
+            alt="Python Integration" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- Slide 7 -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1>6. JIRA Integration</h1>
+          <p>
+            Access and manage XTP tickets directly within your challengepi.com workspace. 
+            Update status, assign tasks, or review the backlog without leaving your application.
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="images/testcase.gif" 
+            alt="JIRA Integration" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- Slide 8 -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1>7. Custom Widgets</h1>
+          <p>
+            Build and deploy custom-designed widgets tailored to your workflow. 
+            We provide a flexible, widget-based approach so you can create specialized 
+            GUIs for unique tasks.
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="images/prebuild.png" 
+            alt="Custom Widgets" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- Slide 9 -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1>8. Multiple Themes</h1>
+          <p>
+            Choose from Light, Dark, Neon, or our signature SKAO gradient theme. 
+            Let your interface shine with vibrant colors or keep it sleek and modern.
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="images/theme.png" 
+            alt="Multiple Themes" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- Slide 10 -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1 class="neon-heading">9. Easy Test Harness</h1>
+          <p>
+            Write and execute test cases right within challengepi.com. 
+            Automate repeated tasks, gather test results, and integrate 
+            them into your existing CI/CD pipelines seamlessly.
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="images/bdd.gif" 
+            alt="Easy Test Harness" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- Slide 11 (Time-based Operations) -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1>10. Time based Operations</h1>
+          <p>
+            Schedule an operation with Time schedule blocks.
+          </p>
+          <a href="#contact-us">Contact Us</a>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="images/time.png" 
+            alt="Time-based Operations" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- NEW Slide 12 (Credits) -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1>11. Credits</h1>
+          <p>
+            <strong>1.</strong> <em>Test Harness </em>  
+            <br/>
+            Affiliations: 
+            <br/>- SKAO 
+            <br/>- IDS  (Emanuele L.)
+            <br/>Link: 
+            <a href="https://gitlab.com/ska-telescope/ska-integration-test-harness" target="_blank">
+              https://gitlab.com/ska-telescope/ska-integration-test-harness
+            </a>
+          </p>
+          <p>
+            <strong>3.</strong> Litegraph: Javi Agenjo
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <img 
+            src="images/bdd.gif" 
+            alt="Credits" 
+            class="slide-image"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+
+    <!-- Slide 13 (YouTube Demo) -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-text">
+          <h1>12. YouTube Demo</h1>
+          <p>
+            Watch our demonstration video to explore more features of challengepi.com!
+          </p>
+        </div>
+        <div class="slide-image-container">
+          <!-- Embedding YouTube video -->
+          <iframe
+            width="560"
+            height="315"
+            src="https://www.youtube.com/embed/LM-pqvPu2C4"
+            title="YouTube video player"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            class="slide-image"
+          ></iframe>
+        </div>
+      </div>
+      <div class="curvy-divider"></div>
+    </section>
+  </div>
+
+  <script>
+    /* ---------------------
+       SLIDER NAVIGATION
+    --------------------- */
+    const presentation = document.getElementById('presentation');
+    const slides = document.querySelectorAll('.slide');
+    let currentSlideIndex = 0;
+
+    function updateSlidePosition() {
+      presentation.style.transform = `translateX(-${currentSlideIndex * 100}vw)`;
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+      updateSlidePosition();
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      currentSlideIndex = (currentSlideIndex - 1 + slides.length) % slides.length;
+      updateSlidePosition();
+    });
+
+    /* ---------------------
+       THEME SWITCHER
+    --------------------- */
+    const themeDropdown = document.getElementById('themeDropdown');
+
+    function setTheme(themeClass) {
+      document.body.className = themeClass;
+      // Update dropdown to reflect the current theme
+      themeDropdown.value = themeClass;
+    }
+
+    // Initialize dropdown to current theme on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const currentTheme = document.body.classList[0];
+      themeDropdown.value = currentTheme;
+    });
+
+    /* ---------------------
+       SWIPE NAVIGATION FOR MOBILE
+    --------------------- */
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    function handleGesture() {
+      if (touchEndX < touchStartX - 50) {
+        // Swipe Left
+        currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+        updateSlidePosition();
+      }
+      if (touchEndX > touchStartX + 50) {
+        // Swipe Right
+        currentSlideIndex = (currentSlideIndex - 1 + slides.length) % slides.length;
+        updateSlidePosition();
+      }
+    }
+
+    presentation.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    });
+
+    presentation.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleGesture();
+    });
+
+    /* ---------------------
+       RETURN TO MAIN MENU
+    --------------------- */
+    const returnButton = document.querySelector('.return-button');
+    returnButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      currentSlideIndex = 0;
+      updateSlidePosition();
+    });
+
+    /* ---------------------
+       KEYBOARD NAVIGATION (Optional)
+    --------------------- */
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+        updateSlidePosition();
+      }
+      if (e.key === 'ArrowLeft') {
+        currentSlideIndex = (currentSlideIndex - 1 + slides.length) % slides.length;
+        updateSlidePosition();
+      }
+    });
+
+    /* ---------------------------------------------------
+       TOGGLE FULLSCREEN ON IMAGE CLICK (NEW ADDITION)
+    --------------------------------------------------- */
+    const slideImages = document.querySelectorAll('.slide-image');
+
+    slideImages.forEach((img) => {
+      img.addEventListener('click', () => {
+        // If we're not in fullscreen, request fullscreen on this image
+        if (!document.fullscreenElement) {
+          if (img.requestFullscreen) {
+            img.requestFullscreen();
+          } else if (img.webkitRequestFullscreen) {
+            // Safari
+            img.webkitRequestFullscreen();
+          } else if (img.msRequestFullscreen) {
+            // IE/Edge
+            img.msRequestFullscreen();
+          }
+        } else {
+          // If we ARE in fullscreen, exit fullscreen
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            // Safari
+            document.webkitExitFullscreen();
+          } else if (document.msExitFullscreen) {
+            // IE/Edge
+            document.msExitFullscreen();
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
