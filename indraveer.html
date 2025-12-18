@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Indraveer Typing Practice</title>
+  <title>Indraveer Typing Practice — Railway / SSC Style</title>
   <style>
     :root{
       --bg1:#0b1020;
@@ -13,6 +13,7 @@
       --muted2:rgba(255,255,255,.55);
       --good:#3ddc97;
       --bad:#ff5a7a;
+      --warn:#ffd166;
       --stroke:rgba(255,255,255,.12);
       --stroke2:rgba(255,255,255,.18);
       --shadow: 0 18px 60px rgba(0,0,0,.40);
@@ -35,28 +36,21 @@
       overflow-x:hidden;
     }
 
-    .app{ max-width: 1180px; margin: 0 auto; padding: 28px 16px 42px; }
-
+    .app{ max-width: 1220px; margin: 0 auto; padding: 26px 16px 44px; }
     header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 14px;
-      margin-bottom: 18px;
+      display:flex; align-items:center; justify-content:space-between; gap: 14px;
+      margin-bottom: 14px;
     }
 
     .brand{ display:flex; align-items:center; gap: 12px; user-select:none; }
     .logo{
-      width: 42px; height: 42px;
-      border-radius: 14px;
+      width: 42px; height: 42px; border-radius: 14px;
       background: linear-gradient(135deg, rgba(124, 92, 255, .9), rgba(0, 212, 255, .6));
       box-shadow: 0 10px 30px rgba(124,92,255,.18);
-      position: relative;
-      overflow:hidden;
+      position: relative; overflow:hidden;
     }
     .logo:before{
-      content:"";
-      position:absolute; inset:-30%;
+      content:""; position:absolute; inset:-30%;
       background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 55%);
       transform: rotate(18deg);
     }
@@ -74,7 +68,7 @@
       padding: 10px 12px;
       border-radius: 14px;
       cursor:pointer;
-      font-weight: 650;
+      font-weight: 700;
       font-size: 13px;
       letter-spacing:.15px;
       box-shadow: 0 10px 26px rgba(0,0,0,.18);
@@ -84,15 +78,13 @@
     .btn:hover{ transform: translateY(-1px); border-color: var(--stroke2); background: rgba(255,255,255,.07); }
     .btn:active{ transform: translateY(0px); }
     .btn.primary{ border-color: rgba(61,220,151,.35); background: rgba(61,220,151,.12); }
+    .btn.warn{ border-color: rgba(255,209,102,.35); background: rgba(255,209,102,.10); }
     .btn.danger{ border-color: rgba(255,90,122,.38); background: rgba(255,90,122,.10); }
     .btn:disabled{ cursor:not-allowed; opacity:.55; transform:none; }
 
     .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 8px 10px;
-      border-radius: 999px;
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px; border-radius: 999px;
       background: rgba(255,255,255,.05);
       border: 1px solid var(--stroke);
       color: var(--muted);
@@ -100,8 +92,8 @@
       user-select:none;
     }
 
-    main{ display:grid; grid-template-columns: 300px 1fr 340px; gap: 14px; }
-    @media (max-width: 1040px){ main{ grid-template-columns: 1fr; } }
+    main{ display:grid; grid-template-columns: 320px 1fr 360px; gap: 14px; }
+    @media (max-width: 1100px){ main{ grid-template-columns: 1fr; } }
 
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
@@ -112,30 +104,23 @@
     }
 
     .card .card-h{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
+      display:flex; align-items:center; justify-content:space-between; gap: 10px;
       padding: 14px 16px;
       border-bottom: 1px solid var(--stroke);
       background: rgba(0,0,0,.12);
     }
-
     .card .card-h .title{
-      margin:0;
-      font-size: 13.5px;
-      letter-spacing:.25px;
+      margin:0; font-size: 13px; letter-spacing:.25px;
       color: rgba(255,255,255,.86);
-      font-weight: 750;
-      text-transform: uppercase;
+      font-weight: 850; text-transform: uppercase;
     }
-
     .card .card-b{ padding: 14px 16px 16px; }
 
     .rule{ display:flex; gap: 10px; margin: 10px 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
     .dot{ flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.22); }
     .dot.good{ background: rgba(61,220,151,.22); border-color: rgba(61,220,151,.35); }
     .dot.bad{ background: rgba(255,90,122,.18); border-color: rgba(255,90,122,.35); }
+    .dot.warn{ background: rgba(255,209,102,.18); border-color: rgba(255,209,102,.35); }
 
     .kbdgrid{ display:grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
     .key{
@@ -151,15 +136,13 @@
     }
 
     .progress{
-      height: 10px;
-      border-radius: 999px;
+      height: 10px; border-radius: 999px;
       background: rgba(255,255,255,.06);
       border: 1px solid rgba(255,255,255,.10);
       overflow:hidden;
     }
     .progress > div{
-      height:100%;
-      width:0%;
+      height:100%; width:0%;
       background: linear-gradient(90deg, rgba(124,92,255,.75), rgba(0,212,255,.65), rgba(61,220,151,.65));
       border-radius:999px;
       transition: width .18s ease;
@@ -173,7 +156,7 @@
       background: rgba(0,0,0,.18);
       overflow:auto;
       font-family: var(--mono);
-      line-height: 1.6;
+      line-height: 1.65;
       font-size: 14px;
       letter-spacing: .15px;
       scroll-behavior:smooth;
@@ -212,19 +195,15 @@
 
     .hint{
       margin-top: 10px;
-      display:flex;
-      flex-wrap:wrap;
-      gap: 8px;
-      align-items:center;
-      justify-content:space-between;
+      display:flex; flex-wrap:wrap; gap: 8px;
+      align-items:center; justify-content:space-between;
       color: var(--muted2);
       font-size: 12.5px;
+      line-height: 1.25;
     }
 
     .toast{
-      position: fixed;
-      left: 50%;
-      bottom: 16px;
+      position: fixed; left: 50%; bottom: 16px;
       transform: translateX(-50%);
       background: rgba(0,0,0,.65);
       border: 1px solid rgba(255,255,255,.16);
@@ -233,11 +212,10 @@
       border-radius: 999px;
       font-size: 13px;
       box-shadow: 0 14px 50px rgba(0,0,0,.45);
-      opacity: 0;
-      pointer-events:none;
+      opacity: 0; pointer-events:none;
       transition: opacity .18s ease, transform .18s ease;
       z-index: 999;
-      max-width: min(92vw, 720px);
+      max-width: min(92vw, 860px);
       text-align:center;
     }
     .toast.show{ opacity: 1; transform: translateX(-50%) translateY(-2px); }
@@ -250,36 +228,14 @@
       background: rgba(0,0,0,.14);
     }
     .stat .k{ font-size: 12px; color: var(--muted); letter-spacing:.2px; margin:0 0 6px; }
-    .stat .v{ margin:0; font-size: 20px; font-weight: 800; letter-spacing:.2px; }
-    .stat .sub{ margin-top: 6px; font-size: 12.5px; color: var(--muted2); line-height:1.25; }
+    .stat .v{ margin:0; font-size: 20px; font-weight: 900; letter-spacing:.2px; }
+    .stat .sub{ margin-top: 6px; font-size: 12.2px; color: var(--muted2); line-height:1.25; }
 
     .big{ grid-column: 1 / -1; display:flex; align-items:flex-end; justify-content:space-between; gap: 10px; }
-    .timer{ font-family: var(--mono); font-size: 28px; font-weight: 900; letter-spacing: .8px; margin:0; }
+    .timer{ font-family: var(--mono); font-size: 28px; font-weight: 950; letter-spacing: .8px; margin:0; }
     .status{ display:flex; flex-wrap:wrap; gap: 8px; justify-content:flex-end; }
 
     .divider{ margin: 14px 0 0; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.10); }
-
-    .history-top{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap: 12px;
-      flex-wrap:wrap;
-      margin-bottom: 10px;
-    }
-
-    .mini{
-      display:flex;
-      gap: 10px;
-      flex-wrap:wrap;
-      align-items:center;
-      color: var(--muted2);
-      font-size: 12.5px;
-      line-height: 1.25;
-    }
-    .mini strong{ color: rgba(255,255,255,.92); }
-
-    .history-actions{ display:flex; gap: 8px; flex-wrap:wrap; justify-content:flex-end; }
 
     .tablewrap{
       border: 1px solid rgba(255,255,255,.10);
@@ -287,18 +243,13 @@
       background: rgba(0,0,0,.12);
       overflow:hidden;
     }
-    table{
-      width:100%;
-      border-collapse: collapse;
-      font-size: 12.5px;
-    }
+    table{ width:100%; border-collapse: collapse; font-size: 12.5px; }
     thead th{
-      text-align:left;
-      padding: 10px 10px;
+      text-align:left; padding: 10px 10px;
       background: rgba(255,255,255,.04);
       border-bottom: 1px solid rgba(255,255,255,.10);
       color: rgba(255,255,255,.80);
-      font-weight: 750;
+      font-weight: 850;
       letter-spacing:.15px;
       white-space:nowrap;
     }
@@ -310,16 +261,10 @@
     }
     tbody tr:last-child td{ border-bottom:none; }
     tbody td.muted{ color: var(--muted2); }
-    .scroll{
-      max-height: 260px;
-      overflow:auto;
-    }
+    .scroll{ max-height: 240px; overflow:auto; }
 
     .spark{
-      display:flex;
-      align-items:flex-end;
-      gap: 6px;
-      height: 60px;
+      display:flex; align-items:flex-end; gap: 6px; height: 60px;
       padding: 10px 10px 12px;
       border: 1px solid rgba(255,255,255,.10);
       border-radius: 16px;
@@ -328,8 +273,7 @@
       overflow:hidden;
     }
     .bar{
-      width: 10px;
-      border-radius: 999px;
+      width: 10px; border-radius: 999px;
       background: rgba(0, 212, 255, .35);
       outline: 1px solid rgba(255,255,255,.08);
       flex: 0 0 auto;
@@ -338,17 +282,11 @@
       background: rgba(61, 220, 151, .38);
       outline-color: rgba(61, 220, 151, .22);
     }
-    .barlabel{
-      font-size: 11px;
-      color: var(--muted2);
-      text-align:center;
-      margin-top: 6px;
-    }
 
     .modal{ position: fixed; inset: 0; display:none; place-items:center; background: rgba(0,0,0,.55); z-index: 1000; padding: 18px; }
     .modal.show{ display:grid; }
     .modal-card{
-      width: min(780px, 100%);
+      width: min(860px, 100%);
       border-radius: 24px;
       border: 1px solid rgba(255,255,255,.14);
       background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
@@ -359,19 +297,25 @@
       padding: 16px 18px;
       border-bottom: 1px solid rgba(255,255,255,.12);
       background: rgba(0,0,0,.16);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
+      display:flex; align-items:center; justify-content:space-between; gap: 10px;
     }
     .modal-h h2{ margin:0; font-size: 16px; letter-spacing:.2px; }
     .modal-b{ padding: 16px 18px 18px; }
-    .resultline{ display:flex; justify-content:space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.08); color: var(--muted); font-size: 13.5px; }
-    .resultline:last-child{ border-bottom:none; }
+    .resultgrid{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .resultline{
+      display:flex; justify-content:space-between; gap: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.12);
+      border-radius: 14px;
+      color: var(--muted);
+      font-size: 13.5px;
+    }
     .resultline strong{ color: rgba(255,255,255,.92); }
     .note{ margin-top: 12px; color: var(--muted2); font-size: 12.5px; line-height: 1.35; }
 
     .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    code.k{ font-family: var(--mono); font-size: 12.5px; color: rgba(255,255,255,.84); }
   </style>
 </head>
 <body>
@@ -381,67 +325,79 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Indraveer Typing Practice</h1>
-          <p class="subtitle">No-backspace typing test • plain English with normal punctuation</p>
+          <p class="subtitle">Railway / SSC-style CBTST simulation • full/half mistakes • 5% allowable • retype passage</p>
         </div>
       </div>
       <div class="header-actions">
-        <span class="pill" title="Backspace and Delete are disabled during the test.">⌫ Backspace: <strong style="color:rgba(255,255,255,.92)">Not allowed</strong></span>
-        <button id="btnNew" class="btn" type="button">New text</button>
-        <button id="btnStart" class="btn primary" type="button">Start test</button>
+        <span class="pill" title="Backspace and Delete are disabled in warmup and test.">⌫ Backspace: <strong style="color:rgba(255,255,255,.92)">Not allowed</strong></span>
+        <button id="btnNew" class="btn" type="button">New passage</button>
+        <button id="btnCBTST" class="btn primary" type="button">Start CBTST</button>
+        <button id="btnTestOnly" class="btn warn" type="button">Start 10-min only</button>
         <button id="btnReset" class="btn danger" type="button" disabled>Reset</button>
       </div>
     </header>
 
     <main>
-      <!-- Left -->
+      <!-- Left: Rules + scoring -->
       <section class="card">
         <div class="card-h">
-          <p class="title">Rules & Characters</p>
+          <p class="title">Railway / SSC rules & scoring</p>
         </div>
         <div class="card-b">
-          <div class="rule"><span class="dot good"></span><span>Timer runs for ten minutes. Results lock when time ends.</span></div>
-          <div class="rule"><span class="dot bad"></span><span>Backspace and Delete are blocked for strict practice.</span></div>
-          <div class="rule"><span class="dot"></span><span>Typing is sequential (cursor is forced to the end).</span></div>
-          <div class="rule"><span class="dot"></span><span>Paste and undo are disabled to keep the score genuine.</span></div>
+          <div class="rule"><span class="dot good"></span><span><strong>Stages:</strong> warm-up 1 minute, break 30 seconds, typing test 10 minutes.</span></div>
+          <div class="rule"><span class="dot good"></span><span><strong>Retype:</strong> after finishing the passage, you can type the same passage again within 10 minutes (app repeats it automatically).</span></div>
+          <div class="rule"><span class="dot warn"></span><span><strong>Minimum words:</strong> if total words typed in English is <strong>below 300</strong>, result is marked “not evaluated”.</span></div>
+          <div class="rule"><span class="dot bad"></span><span><strong>Disqualify warning:</strong> if you do not complete the passage at least once in 10 minutes, result is marked “disqualified”.</span></div>
 
-          <div style="margin-top:14px; color:var(--muted); font-size:13px;">Characters used in the target text:</div>
+          <div style="margin-top:12px; color:rgba(255,255,255,.86); font-weight:850; letter-spacing:.2px;">Mistake calculation</div>
+          <div class="rule"><span class="dot"></span><span><strong>Total mistakes</strong> = Full mistakes + (Half mistakes ÷ 2)</span></div>
+          <div class="rule"><span class="dot"></span><span><strong>Allowable errors</strong> = 5% of total words typed</span></div>
+          <div class="rule"><span class="dot"></span><span><strong>Final count of mistakes</strong> = max(0, Total mistakes − Allowable errors)</span></div>
+          <div class="rule"><span class="dot"></span><span><strong>Net speed (WPM)</strong> = (Total words typed − (Final mistakes × 10)) ÷ 10</span></div>
+
+          <div style="margin-top:10px; color:var(--muted2); font-size:12.5px; line-height:1.35;">
+            In this app: <strong>half mistake</strong> means the typed word differs by only <strong>one character</strong> (or only case),
+            otherwise it is a <strong>full mistake</strong>. The app uses word-alignment so one early mistake doesn’t wrongly ruin the whole line.
+          </div>
+
+          <div style="margin-top:14px; color:var(--muted); font-size:13px;">Characters used in the passage:</div>
           <div id="kbd" class="kbdgrid" aria-label="Character set"></div>
         </div>
       </section>
 
-      <!-- Center -->
+      <!-- Center: Target + typing -->
       <section class="card">
         <div class="card-h">
-          <p class="title">Target Text</p>
+          <p class="title">Passage</p>
           <div style="display:flex; gap:10px; align-items:center; color:var(--muted); font-size:12.5px;">
-            <span id="lenInfo">Length: —</span>
+            <span id="lenInfo">Words: —</span>
           </div>
         </div>
         <div class="card-b" style="display:flex; flex-direction:column; gap:12px;">
           <div class="progress" aria-label="time progress"><div id="prog"></div></div>
-          <div id="target" class="target" aria-label="Target text area"></div>
+          <div id="target" class="target" aria-label="Target passage"></div>
           <div>
             <label class="sr-only" for="typebox">Typing input</label>
-            <textarea id="typebox" class="typebox" placeholder="Press Start, then type the target text here…" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" disabled></textarea>
+            <textarea id="typebox" class="typebox" placeholder="Press Start, then type here…" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" disabled></textarea>
             <div class="hint">
-              <span>Tip: Type continuously. Do not stop to correct mistakes.</span>
+              <span id="stageHint">Ready.</span>
               <span id="liveWarn" aria-live="polite"></span>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Right -->
+      <!-- Right: Stats + history -->
       <section class="card">
         <div class="card-h">
-          <p class="title">Stats & History</p>
+          <p class="title">Stats & history</p>
         </div>
         <div class="card-b">
           <div class="statgrid">
             <div class="stat big">
               <div>
-                <p class="k">Time left</p>
-                <p id="timer" class="timer">10:00</p>
+                <p class="k">Timer</p>
+                <p id="timer" class="timer">00:00</p>
               </div>
               <div class="status">
                 <span id="statePill" class="pill">Status: <strong style="color:rgba(255,255,255,.92)">Ready</strong></span>
@@ -449,51 +405,75 @@
             </div>
 
             <div class="stat">
-              <p class="k">Gross WPM</p>
-              <p id="grossWpm" class="v">0</p>
-              <div class="sub">total characters ÷ five ÷ minutes</div>
+              <p class="k">Total words typed</p>
+              <p id="wordsTyped" class="v">0</p>
+              <div class="sub">based on typed text</div>
             </div>
 
             <div class="stat">
-              <p class="k">Net speed (exam)</p>
-              <p id="netWpm" class="v">0</p>
-              <div class="sub">allowable errors rule</div>
+              <p class="k">Passage completed</p>
+              <p id="passageDone" class="v">0</p>
+              <div class="sub">times completed in test</div>
             </div>
 
             <div class="stat">
-              <p class="k">Accuracy</p>
-              <p id="acc" class="v">100%</p>
-              <div class="sub">correct characters ÷ typed</div>
+              <p class="k">Full mistakes</p>
+              <p id="fullMist" class="v">0</p>
+              <div class="sub">wrong/missing/extra word</div>
             </div>
 
             <div class="stat">
-              <p class="k">Total errors</p>
-              <p id="err" class="v">0</p>
-              <div class="sub">incorrect characters</div>
+              <p class="k">Half mistakes</p>
+              <p id="halfMist" class="v">0</p>
+              <div class="sub">one character difference</div>
             </div>
 
             <div class="stat">
               <p class="k">Allowable errors</p>
               <p id="allowErr" class="v">0</p>
-              <div class="sub">five percent of total words</div>
+              <div class="sub">5% of total words</div>
             </div>
 
             <div class="stat">
               <p class="k">Final mistakes</p>
               <p id="finalMist" class="v">0</p>
-              <div class="sub">errors minus allowable errors</div>
+              <div class="sub">after 5% ignored</div>
+            </div>
+
+            <div class="stat">
+              <p class="k">Gross speed</p>
+              <p id="grossWpm" class="v">0</p>
+              <div class="sub">total words ÷ 10</div>
+            </div>
+
+            <div class="stat">
+              <p class="k">Net speed (WPM)</p>
+              <p id="netWpm" class="v">0</p>
+              <div class="sub">(words − final×10) ÷ 10</div>
+            </div>
+
+            <div class="stat">
+              <p class="k">Character accuracy</p>
+              <p id="acc" class="v">100%</p>
+              <div class="sub">for practice feedback</div>
+            </div>
+
+            <div class="stat">
+              <p class="k">Word bank loaded</p>
+              <p id="bankInfo" class="v">—</p>
+              <div class="sub">from words.html / words.js</div>
             </div>
           </div>
 
           <div class="divider">
-            <div class="history-top">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap: 10px; flex-wrap:wrap;">
               <div>
-                <div style="color:rgba(255,255,255,.86); font-weight:800; letter-spacing:.15px; font-size:13px;">
-                  History (last 20 days)
+                <div style="color:rgba(255,255,255,.86); font-weight:900; letter-spacing:.15px; font-size:13px;">
+                  Results history (last 20 days)
                 </div>
-                <div id="historyMini" class="mini" style="margin-top:6px;">No tests saved yet.</div>
+                <div id="historyMini" style="margin-top:6px; color:var(--muted2); font-size:12.5px;">No tests saved yet.</div>
               </div>
-              <div class="history-actions">
+              <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
                 <button id="btnExport" class="btn" type="button">Export CSV</button>
                 <button id="btnClearHistory" class="btn danger" type="button">Clear</button>
               </div>
@@ -510,19 +490,18 @@
                       <th>Tests</th>
                       <th>Best Net</th>
                       <th>Avg Net</th>
-                      <th>Best Acc</th>
-                      <th>Avg Acc</th>
+                      <th>Best Status</th>
                     </tr>
                   </thead>
                   <tbody id="historyTable">
-                    <tr><td class="muted" colspan="6">No history yet.</td></tr>
+                    <tr><td class="muted" colspan="5">No history yet.</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
 
             <div style="margin-top:10px; color:var(--muted2); font-size:12.5px; line-height:1.35;">
-              Storage is pruned automatically to keep the site fast. Only the last twenty days are kept.
+              Stored locally in your browser (localStorage). Auto-pruned to stay fast.
             </div>
           </div>
         </div>
@@ -535,106 +514,142 @@
   <div id="modal" class="modal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
       <div class="modal-h">
-        <h2 id="resultTitle">Test completed</h2>
+        <h2 id="resultTitle">Test result (10 minutes)</h2>
         <button id="btnClose" class="btn" type="button">Close</button>
       </div>
       <div class="modal-b">
-        <div id="resultLines"></div>
+        <div id="resultGrid" class="resultgrid"></div>
         <div class="note">
-          Exam net speed formula: total words minus (final mistakes multiplied by ten), then divided by minutes.
-          Final mistakes are total errors minus allowable errors (if negative, treated as zero).
+          Net WPM formula: <code class="k">(TotalWords − (FinalMistakes × 10)) ÷ 10</code>.
+          Final mistakes are <code class="k">max(0, TotalMistakes − 0.05×TotalWords)</code>.
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Your existing static word bank -->
+  <!-- Word bank: user asked for words.html; words.js is also supported if present -->
   <script src="words.js"></script>
+  <script src="words.html"></script>
 
   <script>
     // -------------------------
     // Indraveer Typing Practice
+    // Railway / SSC CBTST style
     // -------------------------
 
-    const DURATION_SEC = 10 * 60;
+    // Stages
+    const STAGE_IDLE   = "idle";
+    const STAGE_WARMUP = "warmup";
+    const STAGE_BREAK  = "break";
+    const STAGE_TEST   = "test";
+    const STAGE_DONE   = "done";
 
-    // Normal English punctuation only (no digits in target generator).
+    const WARMUP_SEC = 60;
+    const BREAK_SEC  = 30;
+    const TEST_SEC   = 10 * 60;
+
+    const MIN_WORDS_EN = 300;  // "not evaluated" threshold
+    const KEEP_DAYS = 20;
+    const MAX_SESSIONS = 200;
+    const STORAGE_KEY = "indraveer_cbtst_history_v2";
+
+    // Typical English punctuation set
     const PUNCT = [".", ",", ";", ":", "!", "?", "\"", "'", "-", "(", ")"];
 
-    // History storage (small + pruned)
-    const STORAGE_KEY = "indraveer_typing_history_v1";
-    const KEEP_DAYS = 20;
-    const MAX_SESSIONS = 200; // safety cap
-
-    // Word bank from words.js
-    const WORDS = (Array.isArray(window.WORDS) && window.WORDS.length >= 1000)
+    // Word bank from words file(s)
+    const WORD_BANK = (Array.isArray(window.WORDS) && window.WORDS.length >= 1000)
       ? window.WORDS
-      : ["the","and","to","of","in","a","is","that","for","it","practice","typing","speed","accuracy","exam","question","answer"];
+      : ["the","and","to","of","in","a","is","that","for","it","practice","typing","speed","accuracy","exam","railway","candidate","result","mistake","final"];
 
     const $ = (id) => document.getElementById(id);
 
-    const btnStart = $("btnStart");
-    const btnReset = $("btnReset");
+    // Buttons
     const btnNew = $("btnNew");
+    const btnCBTST = $("btnCBTST");
+    const btnTestOnly = $("btnTestOnly");
+    const btnReset = $("btnReset");
     const btnClose = $("btnClose");
     const btnExport = $("btnExport");
     const btnClearHistory = $("btnClearHistory");
 
-    const typebox = $("typebox");
+    // UI elements
     const targetEl = $("target");
+    const typebox = $("typebox");
+    const lenInfo = $("lenInfo");
+    const stageHint = $("stageHint");
+    const liveWarn = $("liveWarn");
     const progEl = $("prog");
     const timerEl = $("timer");
-    const lenInfo = $("lenInfo");
     const toastEl = $("toast");
     const modal = $("modal");
-    const resultLines = $("resultLines");
-    const statePill = $("statePill");
-    const liveWarn = $("liveWarn");
+    const resultGrid = $("resultGrid");
 
+    const statePill = $("statePill");
+    const wordsTypedEl = $("wordsTyped");
+    const passageDoneEl = $("passageDone");
+    const fullMistEl = $("fullMist");
+    const halfMistEl = $("halfMist");
+    const allowErrEl = $("allowErr");
+    const finalMistEl = $("finalMist");
     const grossWpmEl = $("grossWpm");
     const netWpmEl = $("netWpm");
     const accEl = $("acc");
-    const errEl = $("err");
-    const allowErrEl = $("allowErr");
-    const finalMistEl = $("finalMist");
+    const bankInfoEl = $("bankInfo");
 
-    const historyTable = $("historyTable");
     const historyMini = $("historyMini");
+    const historyTable = $("historyTable");
     const spark = $("spark");
 
+    // Target render
     let targetText = "";
     let targetSpans = [];
+    let basePassageText = "";
+    let basePassageWords = [];
+    let repeatsRendered = 1; // number of passages currently appended in targetText
 
-    let running = false;
-    let startPerf = 0;
+    // Typing state
+    let stage = STAGE_IDLE;
+    let stageStartPerf = 0;
+    let stageDurationSec = 0;
     let rafId = 0;
 
     let typed = "";
-    let correct = 0;
-    let errors = 0;
+    let correctChars = 0;
+    let wrongChars = 0;
 
-    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    // Test-only metrics (computed at end using word alignment DP)
+    let lastComputed = null;
 
-    function formatTime(sec){
-      sec = Math.max(0, Math.ceil(sec));
-      const m = Math.floor(sec / 60);
-      const s = sec % 60;
-      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    }
+    function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+    function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
 
     function showToast(msg){
       toastEl.textContent = msg;
       toastEl.classList.add("show");
       clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toastEl.classList.remove("show"), 900);
+      showToast._t = setTimeout(() => toastEl.classList.remove("show"), 1000);
     }
 
-    function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+    function setState(label){
+      statePill.querySelector("strong").textContent = label;
+    }
+
+    function formatTime(sec){
+      sec = Math.max(0, Math.ceil(sec));
+      const m = Math.floor(sec/60);
+      const s = sec % 60;
+      return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    }
+
+    function forceCaretToEnd(){
+      const len = typebox.value.length;
+      typebox.selectionStart = typebox.selectionEnd = len;
+    }
 
     function buildKeyboard(){
       const chars = [];
-      for (let c=65; c<=90; c++) chars.push(String.fromCharCode(c));   // A-Z
-      for (let c=97; c<=122; c++) chars.push(String.fromCharCode(c));  // a-z
+      for (let c=65;c<=90;c++) chars.push(String.fromCharCode(c));
+      for (let c=97;c<=122;c++) chars.push(String.fromCharCode(c));
       chars.push(" ");
       for (const p of PUNCT) chars.push(p);
 
@@ -649,85 +664,108 @@
       }
     }
 
-    function randomWord(){
-      return WORDS[randInt(0, WORDS.length - 1)];
+    function tokenizeWords(text){
+      // "words" = sequences of non-whitespace
+      const m = text.match(/\S+/g);
+      return m ? m : [];
     }
 
-    function generateTarget(minChars = 5200){
-      // Plain English with punctuation. No digits.
-      const parts = [];
-      let len = 0;
+    function randomWord(){
+      return WORD_BANK[randInt(0, WORD_BANK.length-1)];
+    }
 
-      while (len < minChars){
-        const sentenceLen = randInt(9, 17);
-        const words = [];
-        for (let i=0;i<sentenceLen;i++) words.push(randomWord());
+    function generateMeaningfulPassage(targetWords = 340){
+      // Creates exam-style English paragraphs using the word bank.
+      // (One passage is fixed during the test and repeated on completion.)
+      const connectors = ["however", "therefore", "because", "although", "while", "when", "where", "unless", "since", "after", "before"];
+      const starters = ["Candidates", "The system", "This passage", "A student", "A worker", "The committee", "The officer", "The report", "A decision", "The process"];
 
-        // Capitalize first word
-        words[0] = words[0][0].toUpperCase() + words[0].slice(1);
+      const words = [];
+      while (words.length < targetWords){
+        const sentenceLen = randInt(14, 22);
+        const first = starters[randInt(0, starters.length-1)];
+        const sentence = [first];
 
-        // Mid punctuation
-        if (Math.random() < 0.38){
-          const k = randInt(2, Math.min(sentenceLen-2, 9));
-          const mid = [",",";",":"][randInt(0,2)];
-          words[k] = words[k] + mid;
+        for (let i=1;i<sentenceLen;i++){
+          let w = randomWord();
+          if (Math.random() < 0.10) w = connectors[randInt(0, connectors.length-1)];
+          sentence.push(w);
         }
 
-        // Sentence end punctuation
+        // Capitalize proper sentence start
+        sentence[0] = sentence[0][0].toUpperCase() + sentence[0].slice(1);
+
+        // Insert mid punctuation
+        if (Math.random() < 0.65){
+          const k = randInt(3, sentence.length-4);
+          const mid = [",",";",":"][randInt(0,2)];
+          sentence[k] = sentence[k] + mid;
+        }
+
+        // End punctuation (mostly period)
         const r = Math.random();
         const end = r < 0.12 ? "?" : (r < 0.18 ? "!" : ".");
-        let sentence = words.join(" ") + end;
+        let line = sentence.join(" ") + end;
 
-        // Sometimes add quotes/parentheses
-        if (Math.random() < 0.18) sentence = `"${sentence}"`;
-        if (Math.random() < 0.10) sentence = `(${sentence})`;
+        // Occasional quotes or parentheses
+        if (Math.random() < 0.10) line = `"${line}"`;
+        if (Math.random() < 0.08) line = `(${line})`;
 
-        parts.push(sentence);
+        // Add to passage
+        words.push(line);
 
         // Paragraph breaks
-        if (Math.random() < 0.12) parts.push("\n\n");
-        else parts.push(" ");
-
-        len = parts.join("").length;
+        if (Math.random() < 0.18) words.push("\n\n");
+        else words.push(" ");
       }
 
-      return parts.join("");
+      // Join, then trim whitespace nicely
+      const raw = words.join("").replace(/\s+\n/g, "\n").replace(/\n\s+/g, "\n").trim();
+      return raw;
     }
 
     function renderTarget(text){
       targetText = text;
       targetSpans = [];
+      repeatsRendered = 1;
 
       const frag = document.createDocumentFragment();
       for (let i=0;i<targetText.length;i++){
-        const span = document.createElement("span");
-        span.className = "c";
-        span.textContent = targetText[i];
-        frag.appendChild(span);
-        targetSpans.push(span);
+        const s = document.createElement("span");
+        s.className = "c";
+        s.textContent = targetText[i];
+        frag.appendChild(s);
+        targetSpans.push(s);
       }
       targetEl.innerHTML = "";
       targetEl.appendChild(frag);
 
-      lenInfo.textContent = `Length: ${targetText.length.toLocaleString()} chars`;
+      const baseWordsCount = basePassageWords.length || tokenizeWords(basePassageText).length || 0;
+      lenInfo.textContent = `Words: ${baseWordsCount.toLocaleString()} (passage)`;
       updateCursor(0);
       targetEl.scrollTop = 0;
     }
 
-    // If user reaches end early, append more text (continue till 10 minutes)
-    function appendMoreTarget(extraChars = 2200){
-      const extra = generateTarget(extraChars);
+    function appendRetypeBlockIfNeeded(pos){
+      // If user approaches end of currently rendered target, append another copy of base passage.
+      // This simulates "retype the passage from beginning" inside time.
+      const margin = 220; // chars
+      if (pos < targetText.length - margin) return;
+
+      const extra = "\n\n" + basePassageText;
       const frag = document.createDocumentFragment();
       for (let i=0;i<extra.length;i++){
-        const span = document.createElement("span");
-        span.className = "c";
-        span.textContent = extra[i];
-        frag.appendChild(span);
-        targetSpans.push(span);
+        const s = document.createElement("span");
+        s.className = "c";
+        s.textContent = extra[i];
+        frag.appendChild(s);
+        targetSpans.push(s);
       }
       targetText += extra;
       targetEl.appendChild(frag);
-      lenInfo.textContent = `Length: ${targetText.length.toLocaleString()} chars`;
+      repeatsRendered += 1;
+
+      showToast(`Passage completed — retype from beginning (repeat ${repeatsRendered}).`);
     }
 
     function updateCursor(pos){
@@ -749,196 +787,455 @@
       else if (bottom > viewBottom - 18) container.scrollTop = bottom - container.clientHeight + 24;
     }
 
-    function setState(label){
-      statePill.querySelector("strong").textContent = label;
-    }
-
-    function resetStatsUI(){
-      grossWpmEl.textContent = "0";
-      netWpmEl.textContent = "0";
-      accEl.textContent = "100%";
-      errEl.textContent = "0";
-      allowErrEl.textContent = "0";
-      finalMistEl.textContent = "0";
-      timerEl.textContent = "10:00";
-      progEl.style.width = "0%";
-      liveWarn.textContent = "";
-    }
-
     function clearMarking(){
-      for (let i=0;i<targetSpans.length;i++){
-        targetSpans[i].classList.remove("correct","incorrect");
+      for (const s of targetSpans){
+        s.classList.remove("correct","incorrect");
       }
       updateCursor(0);
+    }
+
+    function resetCounters(){
+      typed = "";
+      correctChars = 0;
+      wrongChars = 0;
+      typebox.value = "";
+      liveWarn.textContent = "";
+      lastComputed = null;
+      updateStatsUI({reset:true});
+      clearMarking();
       targetEl.scrollTop = 0;
+      forceCaretToEnd();
     }
 
-    function forceCaretToEnd(){
-      const len = typebox.value.length;
-      typebox.selectionStart = typebox.selectionEnd = len;
+    // --- Half-mistake check (one edit away) ---
+    function isHalfMistakeWord(a, b){
+      if (a === b) return false;
+      if (!a || !b) return false;
+
+      // case-only difference -> half mistake
+      if (a.toLowerCase() === b.toLowerCase()) return true;
+
+      const la = a.length, lb = b.length;
+      if (Math.abs(la - lb) > 1) return false;
+
+      // Equal length: allow 1 substitution
+      if (la === lb){
+        let diff = 0;
+        for (let i=0;i<la;i++){
+          if (a[i] !== b[i]){
+            diff++;
+            if (diff > 1) return false;
+          }
+        }
+        return diff === 1;
+      }
+
+      // Length differs by 1: allow 1 insertion/deletion
+      const shorter = la < lb ? a : b;
+      const longer  = la < lb ? b : a;
+      let i = 0, j = 0, edits = 0;
+      while (i < shorter.length && j < longer.length){
+        if (shorter[i] === longer[j]){
+          i++; j++;
+        } else {
+          edits++;
+          if (edits > 1) return false;
+          j++; // skip one char in longer
+        }
+      }
+      // remaining extra char in longer counts as 1 edit max
+      return true;
     }
 
-    function minutesElapsed(nowPerf){
-      const elapsedSec = clamp((nowPerf - startPerf) / 1000, 0, DURATION_SEC);
-      return Math.max(elapsedSec / 60, 1/60);
+    // --- DP alignment to compute full/half mistakes robustly ---
+    function computeMistakesWordAlignment(typedWords, expectedWords){
+      const n = typedWords.length;
+      const m = expectedWords.length;
+
+      // dp rows (float costs), dir matrix (uint8) for backtracking
+      // dir codes: 1=INS, 2=DEL, 3=MATCH, 4=HALF, 5=FULLSUB
+      const dir = new Uint8Array((n+1)*(m+1));
+      const prev = new Float32Array(m+1);
+      const curr = new Float32Array(m+1);
+
+      // init dp[0][j] = j (deleting expected words)
+      prev[0] = 0;
+      for (let j=1;j<=m;j++){
+        prev[j] = prev[j-1] + 1;
+        dir[0*(m+1)+j] = 2; // DEL
+      }
+
+      for (let i=1;i<=n;i++){
+        curr[0] = prev[0] + 1;
+        dir[i*(m+1)+0] = 1; // INS
+
+        const tw = typedWords[i-1];
+        for (let j=1;j<=m;j++){
+          const ew = expectedWords[j-1];
+
+          let subCost = 0;
+          let subDir = 3; // MATCH
+          if (tw === ew){
+            subCost = 0; subDir = 3;
+          } else if (isHalfMistakeWord(tw, ew)){
+            subCost = 0.5; subDir = 4;
+          } else {
+            subCost = 1; subDir = 5;
+          }
+
+          const costIns = prev[j] + 1;         // dp[i-1][j] + 1
+          const costDel = curr[j-1] + 1;       // dp[i][j-1] + 1
+          const costSub = prev[j-1] + subCost; // dp[i-1][j-1] + sub
+
+          // choose minimal (tie-break: prefer SUB, then DEL, then INS)
+          let best = costSub;
+          let bestDir = subDir;
+
+          if (costDel < best - 1e-6 || (Math.abs(costDel-best) <= 1e-6 && bestDir !== 3 && bestDir !== 4 && bestDir !== 5)){
+            best = costDel;
+            bestDir = 2;
+          }
+          if (costIns < best - 1e-6){
+            best = costIns;
+            bestDir = 1;
+          }
+
+          curr[j] = best;
+          dir[i*(m+1)+j] = bestDir;
+        }
+
+        // swap
+        prev.set(curr);
+      }
+
+      // Choose best end j (no penalty for not typing remaining expected words)
+      let bestJ = 0;
+      let bestCost = prev[0];
+      for (let j=1;j<=m;j++){
+        if (prev[j] < bestCost){
+          bestCost = prev[j];
+          bestJ = j;
+        }
+      }
+
+      // Backtrack from (n, bestJ)
+      let i = n, j = bestJ;
+      let full = 0, half = 0;
+      while (i > 0 || j > 0){
+        if (i === 0){
+          // deletions
+          full += j;
+          break;
+        }
+        if (j === 0){
+          // insertions
+          full += i;
+          break;
+        }
+
+        const code = dir[i*(m+1)+j];
+        if (code === 1){
+          // INS
+          full++;
+          i--;
+        } else if (code === 2){
+          // DEL
+          full++;
+          j--;
+        } else if (code === 3){
+          // MATCH
+          i--; j--;
+        } else if (code === 4){
+          // HALF
+          half++;
+          i--; j--;
+        } else if (code === 5){
+          // FULL SUB
+          full++;
+          i--; j--;
+        } else {
+          // fallback
+          i--; j--;
+        }
+      }
+
+      return { fullMistakes: full, halfMistakes: half, alignedExpectedUsed: bestJ, totalCost: bestCost };
     }
 
-    // Screenshot formula
-    function computeExamMetrics(minutes){
-      const totalChars = typed.length;            // Total Characters: all keystrokes made
-      const totalWords = totalChars / 5;          // Total Words: Total Characters / 5
-      const allowableErrors = totalWords * 0.05;  // Allowable Errors: 5% of total words
-      const totalErrors = errors;                 // Total Errors: count of mistakes
-      const finalMistakes = Math.max(0, totalErrors - allowableErrors); // Final mistakes (>= 0)
+    function computeFinalTestMetrics(){
+      const typedWords = tokenizeWords(typed);
 
-      // Net Speed (WPM): (Total Words - (Final Mistakes * 10)) / minutes
-      const grossWpm = totalWords / minutes;
-      const netExamWpm = Math.max(0, (totalWords - (finalMistakes * 10)) / minutes);
+      // Expand expected words (repeat base passage) to cover typed length safely
+      const baseLen = basePassageWords.length || 1;
+      const needRepeats = Math.max(1, Math.ceil((typedWords.length + baseLen) / baseLen));
+      const expectedWords = [];
+      for (let r=0;r<needRepeats;r++){
+        expectedWords.push(...basePassageWords);
+      }
 
-      const accuracy = totalChars ? (correct / totalChars) * 100 : 100;
+      const align = computeMistakesWordAlignment(typedWords, expectedWords);
 
-      return { totalChars, totalWords, allowableErrors, totalErrors, finalMistakes, grossWpm, netExamWpm, accuracy };
+      const totalWords = typedWords.length;
+      const totalMistakes = align.fullMistakes + (align.halfMistakes / 2);
+      const allowable = totalWords * 0.05;
+      const finalMist = Math.max(0, totalMistakes - allowable);
+
+      const grossWpm = totalWords / 10;
+      const netWpm = Math.max(0, (totalWords - (finalMist * 10)) / 10);
+
+      const charAcc = (typed.length > 0) ? (correctChars / typed.length) * 100 : 100;
+
+      // Passage completion check: if we consumed >= baseLen expected words in alignment
+      const passagesCompleted = Math.floor(align.alignedExpectedUsed / baseLen);
+
+      let status = "Evaluated";
+      if (totalWords < MIN_WORDS_EN) status = "Not evaluated (<300 words)";
+      if (passagesCompleted < 1) status = "Disqualified (passage not completed)";
+
+      return {
+        status,
+        totalWords,
+        passagesCompleted,
+        fullMistakes: align.fullMistakes,
+        halfMistakes: align.halfMistakes,
+        totalMistakes,
+        allowable,
+        finalMist,
+        grossWpm,
+        netWpm,
+        charAcc
+      };
     }
 
-    function updateLiveStats(nowPerf){
-      const mins = minutesElapsed(nowPerf);
-      const m = computeExamMetrics(mins);
+    function updateStatsUI(opts = {}){
+      if (opts.reset){
+        wordsTypedEl.textContent = "0";
+        passageDoneEl.textContent = "0";
+        fullMistEl.textContent = "0";
+        halfMistEl.textContent = "0";
+        allowErrEl.textContent = "0";
+        finalMistEl.textContent = "0";
+        grossWpmEl.textContent = "0";
+        netWpmEl.textContent = "0";
+        accEl.textContent = "100%";
+        return;
+      }
 
-      grossWpmEl.textContent = Math.floor(m.grossWpm + 1e-9).toString();
-      netWpmEl.textContent = Math.floor(m.netExamWpm + 1e-9).toString();
-      accEl.textContent = `${m.accuracy.toFixed(2)}%`;
-      errEl.textContent = m.totalErrors.toString();
-      allowErrEl.textContent = m.allowableErrors.toFixed(2);
-      finalMistEl.textContent = m.finalMistakes.toFixed(2);
+      // Lightweight live values
+      const wordsNow = tokenizeWords(typed).length;
+      wordsTypedEl.textContent = String(wordsNow);
+
+      const acc = typed.length ? (correctChars / typed.length) * 100 : 100;
+      accEl.textContent = `${acc.toFixed(2)}%`;
+
+      // For live, compute full metrics only occasionally (to keep smooth)
+      // We'll compute at most every ~700ms via tick()
+    }
+
+    function setTimerUI(secLeft){
+      timerEl.textContent = formatTime(secLeft);
+    }
+
+    function setProgressUI(secLeft){
+      if (stage === STAGE_WARMUP){
+        const elapsed = Math.min(WARMUP_SEC, Math.max(0, stageDurationSec - secLeft));
+        progEl.style.width = `${(elapsed / WARMUP_SEC) * 100}%`;
+      } else if (stage === STAGE_BREAK){
+        const elapsed = Math.min(BREAK_SEC, Math.max(0, stageDurationSec - secLeft));
+        progEl.style.width = `${(elapsed / BREAK_SEC) * 100}%`;
+      } else if (stage === STAGE_TEST){
+        const elapsed = Math.min(TEST_SEC, Math.max(0, stageDurationSec - secLeft));
+        progEl.style.width = `${(elapsed / TEST_SEC) * 100}%`;
+      } else {
+        progEl.style.width = "0%";
+      }
     }
 
     function tick(){
-      if (!running) return;
       const now = performance.now();
-      const elapsed = clamp((now - startPerf) / 1000, 0, DURATION_SEC);
-      const left = DURATION_SEC - elapsed;
+      const elapsed = (now - stageStartPerf) / 1000;
+      const left = Math.max(0, stageDurationSec - elapsed);
 
-      timerEl.textContent = formatTime(left);
+      setTimerUI(left);
+      setProgressUI(left);
 
-      // Progress bar as TIME progress (stable even if target becomes infinite)
-      const pct = (elapsed / DURATION_SEC) * 100;
-      progEl.style.width = `${clamp(pct, 0, 100).toFixed(2)}%`;
+      // Update live metrics during warmup/test
+      if (stage === STAGE_WARMUP){
+        stageHint.textContent = "Warm-up: practice typing (not evaluated).";
+        setState("Warm-up");
+      } else if (stage === STAGE_BREAK){
+        stageHint.textContent = "Break: relax your hands (typing disabled).";
+        setState("Break");
+      } else if (stage === STAGE_TEST){
+        stageHint.textContent = "Test: 10 minutes (evaluated). Type continuously. No backspace.";
+        setState("Running");
 
-      updateLiveStats(now);
-
-      if (left <= 0.0001){
-        stopTest();
-        return;
+        // compute full metrics occasionally (cheap enough)
+        if (!tick._last || (now - tick._last) > 700){
+          tick._last = now;
+          const m = computeFinalTestMetrics();
+          passageDoneEl.textContent = String(m.passagesCompleted);
+          fullMistEl.textContent = String(m.fullMistakes);
+          halfMistEl.textContent = String(m.halfMistakes);
+          allowErrEl.textContent = m.allowable.toFixed(2);
+          finalMistEl.textContent = m.finalMist.toFixed(2);
+          grossWpmEl.textContent = Math.floor(m.grossWpm + 1e-9).toString();
+          netWpmEl.textContent = Math.floor(m.netWpm + 1e-9).toString();
+          updateStatsUI();
+        }
       }
+
+      if (left <= 0.001){
+        if (stage === STAGE_WARMUP){
+          startStageBreak();
+          return;
+        } else if (stage === STAGE_BREAK){
+          startStageTest(true);
+          return;
+        } else if (stage === STAGE_TEST){
+          finishTest();
+          return;
+        }
+      }
+
       rafId = requestAnimationFrame(tick);
     }
 
-    function startTest(){
-      if (running) return;
+    function stopTicker(){
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
 
-      // Randomize target every test (your requirement)
-      renderTarget(generateTarget());
-      clearMarking();
+    function startStageWarmup(){
+      stopTicker();
+      stage = STAGE_WARMUP;
+      stageDurationSec = WARMUP_SEC;
+      stageStartPerf = performance.now();
 
-      running = true;
-      startPerf = performance.now();
-      setState("Running");
+      // warmup passage: short + simple
+      basePassageText = generateMeaningfulPassage(180);
+      basePassageWords = tokenizeWords(basePassageText);
 
-      btnStart.disabled = true;
-      btnNew.disabled = true;
-      btnReset.disabled = false;
+      renderTarget(basePassageText);
+      resetCounters();
 
       typebox.disabled = false;
-      typebox.value = "";
-      typed = "";
-      correct = 0;
-      errors = 0;
-      resetStatsUI();
+      btnReset.disabled = false;
+      btnCBTST.disabled = true;
+      btnTestOnly.disabled = true;
+      btnNew.disabled = true;
 
-      typebox.focus();
-      forceCaretToEnd();
-
+      typebox.focus(); forceCaretToEnd();
+      showToast("Warm-up started (1 minute).");
       rafId = requestAnimationFrame(tick);
-      showToast("Test started. Backspace/Delete disabled.");
     }
 
-    function stopTest(){
-      if (!running) return;
-
-      running = false;
-      cancelAnimationFrame(rafId);
-      setState("Completed");
+    function startStageBreak(){
+      stopTicker();
+      stage = STAGE_BREAK;
+      stageDurationSec = BREAK_SEC;
+      stageStartPerf = performance.now();
 
       typebox.disabled = true;
-      btnStart.disabled = false;
-      btnNew.disabled = false;
+      showToast("Break started (30 seconds).");
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function startStageTest(fromCBTSTFlow){
+      stopTicker();
+      stage = STAGE_TEST;
+      stageDurationSec = TEST_SEC;
+      stageStartPerf = performance.now();
+
+      // test passage: around 340+ words
+      basePassageText = generateMeaningfulPassage(350);
+      basePassageWords = tokenizeWords(basePassageText);
+
+      // Render only one passage; repeats get appended automatically on completion
+      renderTarget(basePassageText);
+
+      // reset counters for evaluated test
+      resetCounters();
+
+      typebox.disabled = false;
+
       btnReset.disabled = false;
+      btnCBTST.disabled = true;
+      btnTestOnly.disabled = true;
+      btnNew.disabled = true;
 
-      // Final update uses full 10 minutes as per exam test
-      const mins = DURATION_SEC / 60;
-      const m = computeExamMetrics(mins);
+      typebox.focus(); forceCaretToEnd();
+      showToast(fromCBTSTFlow ? "Typing test started (10 minutes)." : "10-minute test started.");
+      rafId = requestAnimationFrame(tick);
+    }
 
-      timerEl.textContent = "00:00";
+    function finishTest(){
+      stopTicker();
+      stage = STAGE_DONE;
+      setState("Completed");
+      typebox.disabled = true;
+
+      const m = computeFinalTestMetrics();
+      lastComputed = m;
+
+      // Update right-side numbers with final
+      wordsTypedEl.textContent = String(m.totalWords);
+      passageDoneEl.textContent = String(m.passagesCompleted);
+      fullMistEl.textContent = String(m.fullMistakes);
+      halfMistEl.textContent = String(m.halfMistakes);
+      allowErrEl.textContent = m.allowable.toFixed(2);
+      finalMistEl.textContent = m.finalMist.toFixed(2);
+      grossWpmEl.textContent = Math.floor(m.grossWpm + 1e-9).toString();
+      netWpmEl.textContent = Math.floor(m.netWpm + 1e-9).toString();
+      accEl.textContent = `${m.charAcc.toFixed(2)}%`;
+
+      setTimerUI(0);
+      setProgressUI(0);
+
       openResults(m);
 
-      // Save result day-wise
+      // Save result
       saveSession({
         ts: Date.now(),
-        grossWpm: Math.floor(m.grossWpm + 1e-9),
-        netWpm: Math.floor(m.netExamWpm + 1e-9),
-        acc: Number(m.accuracy.toFixed(2)),
-        totalChars: m.totalChars,
-        totalErrors: m.totalErrors,
-        allowableErrors: Number(m.allowableErrors.toFixed(2)),
-        finalMistakes: Number(m.finalMistakes.toFixed(2)),
+        status: m.status,
+        words: m.totalWords,
+        net: Number(m.netWpm.toFixed(2)),
+        gross: Number(m.grossWpm.toFixed(2)),
+        full: m.fullMistakes,
+        half: m.halfMistakes,
+        totalMist: Number(m.totalMistakes.toFixed(2)),
+        allow: Number(m.allowable.toFixed(2)),
+        finalMist: Number(m.finalMist.toFixed(2)),
+        passDone: m.passagesCompleted,
+        acc: Number(m.charAcc.toFixed(2))
       });
 
       renderHistory();
-    }
 
-    function hardReset(){
-      running = false;
-      cancelAnimationFrame(rafId);
-      setState("Ready");
-
-      typebox.disabled = true;
-      typebox.value = "";
-      typed = "";
-      correct = 0;
-      errors = 0;
-
-      resetStatsUI();
-      clearMarking();
-
-      btnStart.disabled = false;
+      btnReset.disabled = false;
+      btnCBTST.disabled = false;
+      btnTestOnly.disabled = false;
       btnNew.disabled = false;
-      btnReset.disabled = true;
 
-      showToast("Reset done.");
-    }
-
-    function newText(){
-      if (running){
-        showToast("Finish or reset the test before generating new text.");
-        return;
-      }
-      renderTarget(generateTarget());
-      hardReset();
+      showToast("Test finished. Result saved.");
     }
 
     function openResults(m){
       const lines = [
-        ["Total characters", m.totalChars.toLocaleString()],
-        ["Total words (characters ÷ five)", m.totalWords.toFixed(2)],
-        ["Allowable errors (five percent of total words)", m.allowableErrors.toFixed(2)],
-        ["Total errors", m.totalErrors.toLocaleString()],
-        ["Final mistakes (errors minus allowable errors)", m.finalMistakes.toFixed(2)],
-        ["Gross WPM", Math.floor(m.grossWpm + 1e-9).toString()],
-        ["Net speed (exam)", Math.floor(m.netExamWpm + 1e-9).toString()],
-        ["Accuracy", `${m.accuracy.toFixed(2)}%`],
+        ["Status", m.status],
+        ["Total words typed", String(m.totalWords)],
+        ["Passage completed", String(m.passagesCompleted)],
+        ["Full mistakes", String(m.fullMistakes)],
+        ["Half mistakes", String(m.halfMistakes)],
+        ["Total mistakes (full + half/2)", m.totalMistakes.toFixed(2)],
+        ["Allowable errors (5%)", m.allowable.toFixed(2)],
+        ["Final count of mistakes", m.finalMist.toFixed(2)],
+        ["Gross speed (WPM)", Math.floor(m.grossWpm + 1e-9).toString()],
+        ["Net speed (WPM)", Math.floor(m.netWpm + 1e-9).toString()],
+        ["Character accuracy", `${m.charAcc.toFixed(2)}%`]
       ];
 
-      resultLines.innerHTML = lines.map(([k,v]) =>
+      resultGrid.innerHTML = lines.map(([k,v]) =>
         `<div class="resultline"><span>${k}</span><strong>${v}</strong></div>`
       ).join("");
 
@@ -951,60 +1248,54 @@
       modal.setAttribute("aria-hidden","true");
     }
 
-    // Strict no-delete + continuous typing
-    function onTypeInput(){
-      if (!running) return;
+    function hardReset(){
+      stopTicker();
+      stage = STAGE_IDLE;
+      setState("Ready");
+      stageHint.textContent = "Ready.";
 
-      const val = typebox.value;
+      typebox.disabled = true;
+      btnReset.disabled = true;
+      btnCBTST.disabled = false;
+      btnTestOnly.disabled = false;
+      btnNew.disabled = false;
 
-      // Enforce no deletion (including select-delete)
-      if (val.length < typed.length){
-        typebox.value = typed;
-        forceCaretToEnd();
-        liveWarn.textContent = "Deletion is disabled.";
-        return;
-      }
+      // generate a preview passage
+      basePassageText = generateMeaningfulPassage(350);
+      basePassageWords = tokenizeWords(basePassageText);
+      renderTarget(basePassageText);
 
-      forceCaretToEnd();
+      resetCounters();
+      setTimerUI(0);
+      progEl.style.width = "0%";
 
-      const added = val.slice(typed.length);
-      if (!added) return;
-      liveWarn.textContent = "";
-
-      for (let i=0;i<added.length;i++){
-        const ch = added[i];
-        const pos = typed.length;
-
-        // If user reached end early, append more target so they can continue
-        if (pos >= targetText.length - 1){
-          appendMoreTarget(2200);
-        }
-
-        const expected = targetText[pos] ?? "";
-        const ok = (ch === expected);
-
-        typed += ch;
-        if (ok) correct++;
-        else errors++;
-
-        if (pos < targetSpans.length){
-          targetSpans[pos].classList.add(ok ? "correct" : "incorrect");
-        }
-        updateCursor(pos + 1);
-      }
-
-      scrollCursorIntoView(typed.length);
+      showToast("Reset done.");
     }
 
-    function onKeyDown(e){
-      if (!running) return;
+    function newPassage(){
+      if (stage !== STAGE_IDLE){
+        showToast("Reset first to change the passage.");
+        return;
+      }
+      basePassageText = generateMeaningfulPassage(350);
+      basePassageWords = tokenizeWords(basePassageText);
+      renderTarget(basePassageText);
+      resetCounters();
+      showToast("New passage generated.");
+    }
 
-      // Block Backspace/Delete
+    // -------------------------
+    // Input restrictions
+    // -------------------------
+    function onKeyDown(e){
+      // Always block backspace/delete (warmup + test)
       if (e.key === "Backspace" || e.key === "Delete"){
         e.preventDefault();
         showToast("Backspace/Delete is not allowed.");
         return;
       }
+
+      if (stage !== STAGE_WARMUP && stage !== STAGE_TEST) return;
 
       // Block cursor movement keys
       const blocked = ["ArrowLeft","ArrowUp","ArrowRight","ArrowDown","Home","End","PageUp","PageDown"];
@@ -1019,42 +1310,81 @@
       const ctrl = e.ctrlKey || e.metaKey;
       if (ctrl && ["a","x","v","z","y"].includes(e.key.toLowerCase())){
         e.preventDefault();
-        showToast("Copy/Cut/Paste/Undo/Redo is disabled during the test.");
+        showToast("Copy/Cut/Paste/Undo/Redo is disabled.");
         return;
       }
 
-      // Only allow Enter when the target expects a newline
-      if (e.key === "Enter"){
-        const pos = typed.length;
-        const expected = targetText[pos] ?? "";
-        if (expected !== "\n"){
-          e.preventDefault();
-          showToast("Enter is not expected here.");
-        }
-      }
+      // Break stage: typing disabled anyway
     }
 
     function onPaste(e){
-      if (!running) return;
-      e.preventDefault();
-      showToast("Paste is disabled.");
+      if (stage === STAGE_WARMUP || stage === STAGE_TEST){
+        e.preventDefault();
+        showToast("Paste is disabled.");
+      }
     }
 
     function onDrop(e){
-      if (!running) return;
-      e.preventDefault();
-      showToast("Drop is disabled.");
+      if (stage === STAGE_WARMUP || stage === STAGE_TEST){
+        e.preventDefault();
+        showToast("Drop is disabled.");
+      }
     }
 
-    // -----------------
-    // History functions
-    // -----------------
+    function onTypeInput(){
+      if (stage !== STAGE_WARMUP && stage !== STAGE_TEST) return;
 
+      const val = typebox.value;
+
+      // No deletion allowed: if user somehow deleted, restore
+      if (val.length < typed.length){
+        typebox.value = typed;
+        forceCaretToEnd();
+        liveWarn.textContent = "Deletion is disabled.";
+        return;
+      }
+
+      forceCaretToEnd();
+      const added = val.slice(typed.length);
+      if (!added) return;
+
+      liveWarn.textContent = "";
+
+      for (let i=0;i<added.length;i++){
+        const ch = added[i];
+        const pos = typed.length;
+
+        // If in test, auto-append another copy of the passage near end (retype rule)
+        if (stage === STAGE_TEST){
+          appendRetypeBlockIfNeeded(pos);
+        }
+
+        const expected = targetText[pos] ?? "";
+        typed += ch;
+
+        if (ch === expected){
+          correctChars++;
+          if (pos < targetSpans.length) targetSpans[pos].classList.add("correct");
+        } else {
+          wrongChars++;
+          if (pos < targetSpans.length) targetSpans[pos].classList.add("incorrect");
+        }
+
+        updateCursor(pos + 1);
+      }
+
+      scrollCursorIntoView(typed.length);
+      updateStatsUI();
+    }
+
+    // -------------------------
+    // History (fast + pruned)
+    // -------------------------
     function localDayKey(ts){
       const d = new Date(ts);
       const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const da = String(d.getDate()).padStart(2, "0");
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const da = String(d.getDate()).padStart(2,"0");
       return `${y}-${m}-${da}`;
     }
 
@@ -1081,20 +1411,15 @@
       try{
         localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
       }catch{
-        // If storage is full or blocked, silently ignore
+        // ignore
       }
     }
 
     function pruneHistory(arr){
       const cut = cutoffTimestamp();
       let out = arr.filter(x => x && typeof x.ts === "number" && x.ts >= cut);
-
-      // keep newest first
-      out.sort((a,b) => b.ts - a.ts);
-
-      // cap to MAX_SESSIONS
+      out.sort((a,b)=> b.ts - a.ts);
       if (out.length > MAX_SESSIONS) out = out.slice(0, MAX_SESSIONS);
-
       return out;
     }
 
@@ -1123,72 +1448,58 @@
       const hist = pruneHistory(loadHistory());
       if (!hist.length){
         historyMini.textContent = "No tests saved yet.";
-        historyTable.innerHTML = `<tr><td class="muted" colspan="6">No history yet.</td></tr>`;
+        historyTable.innerHTML = `<tr><td class="muted" colspan="5">No history yet.</td></tr>`;
         spark.innerHTML = "";
         return;
       }
 
       const byDay = groupByDay(hist);
-
-      // Build daily summaries (descending by day)
       const days = Array.from(byDay.keys()).sort((a,b) => (a < b ? 1 : -1));
-      const rows = [];
-
       const daily = days.map(day => {
         const sessions = byDay.get(day);
-        const nets = sessions.map(s => Number(s.netWpm || 0));
-        const accs = sessions.map(s => Number(s.acc || 0));
-        return {
-          day,
-          count: sessions.length,
-          bestNet: Math.max(...nets),
-          avgNet: avg(nets),
-          bestAcc: Math.max(...accs),
-          avgAcc: avg(accs),
-        };
+        const nets = sessions.map(s => Number(s.net || 0));
+        const best = Math.max(...nets);
+        const avgNet = avg(nets);
+        const statuses = sessions.map(s => s.status || "");
+        // "best status" = status of the session with best net
+        const bestIdx = nets.indexOf(best);
+        const bestStatus = statuses[bestIdx] || "—";
+        return { day, count: sessions.length, best, avgNet, bestStatus };
       });
 
-      for (const d of daily){
-        rows.push(`
-          <tr>
-            <td>${d.day}</td>
-            <td class="muted">${d.count}</td>
-            <td><strong>${Math.round(d.bestNet)}</strong></td>
-            <td class="muted">${d.avgNet.toFixed(1)}</td>
-            <td><strong>${d.bestAcc.toFixed(2)}%</strong></td>
-            <td class="muted">${d.avgAcc.toFixed(2)}%</td>
-          </tr>
-        `);
-      }
-      historyTable.innerHTML = rows.join("");
+      historyTable.innerHTML = daily.map(d => `
+        <tr>
+          <td>${d.day}</td>
+          <td class="muted">${d.count}</td>
+          <td><strong>${Math.round(d.best)}</strong></td>
+          <td class="muted">${d.avgNet.toFixed(1)}</td>
+          <td class="muted">${d.bestStatus}</td>
+        </tr>
+      `).join("");
 
-      // Mini summary (today + last 7 days)
       const todayKey = localDayKey(Date.now());
       const todaySessions = byDay.get(todayKey) || [];
-      const todayBest = todaySessions.length ? Math.max(...todaySessions.map(s => Number(s.netWpm||0))) : 0;
+      const todayBest = todaySessions.length ? Math.max(...todaySessions.map(s => Number(s.net||0))) : 0;
 
       const last7 = daily.slice(0, 7);
       const last7Avg = last7.length ? avg(last7.map(d => d.avgNet)) : 0;
-
-      const totalTests = hist.length;
-      const bestNetOverall = Math.max(...hist.map(s => Number(s.netWpm || 0)));
+      const bestOverall = Math.max(...hist.map(s => Number(s.net||0)));
 
       historyMini.innerHTML =
         `Today best net: <strong>${Math.round(todayBest)}</strong> • ` +
         `7-day avg net: <strong>${last7Avg.toFixed(1)}</strong> • ` +
-        `Best net (all saved): <strong>${Math.round(bestNetOverall)}</strong> • ` +
-        `Tests saved: <strong>${totalTests}</strong>`;
+        `Best net (saved): <strong>${Math.round(bestOverall)}</strong> • ` +
+        `Tests saved: <strong>${hist.length}</strong>`;
 
-      // Spark bars (best net per day)
-      const maxNet = Math.max(...daily.map(d => d.bestNet), 1);
+      // Spark bars
+      const maxNet = Math.max(...daily.map(d => d.best), 1);
       spark.innerHTML = "";
-      // show up to 20 bars (already max 20 days)
       daily.slice().reverse().forEach((d) => {
-        const h = Math.max(6, Math.round((d.bestNet / maxNet) * 56));
+        const h = Math.max(6, Math.round((d.best / maxNet) * 56));
         const div = document.createElement("div");
         div.className = "bar" + (d.day === todayKey ? " best" : "");
         div.style.height = `${h}px`;
-        div.title = `${d.day} • best net ${Math.round(d.bestNet)} • tests ${d.count}`;
+        div.title = `${d.day} • best net ${Math.round(d.best)} • tests ${d.count}`;
         spark.appendChild(div);
       });
     }
@@ -1199,41 +1510,34 @@
         showToast("No history to export.");
         return;
       }
-      const header = [
-        "timestamp",
-        "date",
-        "grossWpm",
-        "netWpm",
-        "accuracy",
-        "totalChars",
-        "totalErrors",
-        "allowableErrors",
-        "finalMistakes"
-      ];
+
+      const header = ["timestamp","date","status","words","grossWpm","netWpm","full","half","totalMist","allowable","finalMist","passagesCompleted","charAcc"];
       const lines = [header.join(",")];
 
       for (const s of hist.slice().reverse()){
-        const ts = s.ts;
-        const date = localDayKey(ts);
         const row = [
-          new Date(ts).toISOString(),
-          date,
-          s.grossWpm ?? "",
-          s.netWpm ?? "",
-          s.acc ?? "",
-          s.totalChars ?? "",
-          s.totalErrors ?? "",
-          s.allowableErrors ?? "",
-          s.finalMistakes ?? ""
+          new Date(s.ts).toISOString(),
+          localDayKey(s.ts),
+          (s.status || "").replace(/,/g," "),
+          s.words ?? "",
+          s.gross ?? "",
+          s.net ?? "",
+          s.full ?? "",
+          s.half ?? "",
+          s.totalMist ?? "",
+          s.allow ?? "",
+          s.finalMist ?? "",
+          s.passDone ?? "",
+          s.acc ?? ""
         ];
         lines.push(row.join(","));
       }
 
-      const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+      const blob = new Blob([lines.join("\n")], { type:"text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `indraveer-typing-history-${localDayKey(Date.now())}.csv`;
+      a.download = `indraveer-cbtst-history-${localDayKey(Date.now())}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -1241,37 +1545,37 @@
     }
 
     function clearHistory(){
-      try{
-        localStorage.removeItem(STORAGE_KEY);
-      }catch{}
+      try{ localStorage.removeItem(STORAGE_KEY); }catch{}
       renderHistory();
       showToast("History cleared.");
     }
 
-    // Buttons
-    btnStart.addEventListener("click", startTest);
+    // -------------------------
+    // Wire up
+    // -------------------------
+    btnNew.addEventListener("click", newPassage);
+    btnCBTST.addEventListener("click", startStageWarmup);
+    btnTestOnly.addEventListener("click", () => startStageTest(false));
     btnReset.addEventListener("click", hardReset);
-    btnNew.addEventListener("click", newText);
+
     btnClose.addEventListener("click", closeResults);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeResults(); });
+
     btnExport.addEventListener("click", exportCSV);
     btnClearHistory.addEventListener("click", clearHistory);
 
-    // Modal close by clicking outside
-    modal.addEventListener("click", (e) => { if (e.target === modal) closeResults(); });
-
-    // Input listeners
     typebox.addEventListener("input", onTypeInput);
     typebox.addEventListener("keydown", onKeyDown);
     typebox.addEventListener("paste", onPaste);
     typebox.addEventListener("drop", onDrop);
-    typebox.addEventListener("contextmenu", (e) => { if (running) e.preventDefault(); });
-    typebox.addEventListener("mouseup", () => { if (running) forceCaretToEnd(); });
-    typebox.addEventListener("keyup", () => { if (running) forceCaretToEnd(); });
-    typebox.addEventListener("focus", () => { if (running) forceCaretToEnd(); });
+    typebox.addEventListener("contextmenu", (e) => { if (stage === STAGE_WARMUP || stage === STAGE_TEST) e.preventDefault(); });
+    typebox.addEventListener("mouseup", () => { if (stage === STAGE_WARMUP || stage === STAGE_TEST) forceCaretToEnd(); });
+    typebox.addEventListener("keyup", () => { if (stage === STAGE_WARMUP || stage === STAGE_TEST) forceCaretToEnd(); });
+    typebox.addEventListener("focus", () => { if (stage === STAGE_WARMUP || stage === STAGE_TEST) forceCaretToEnd(); });
 
     // Init
     buildKeyboard();
-    renderTarget(generateTarget());
+    bankInfoEl.textContent = Array.isArray(window.WORDS) ? String(window.WORDS.length) : "fallback";
     hardReset();
     renderHistory();
   </script>
