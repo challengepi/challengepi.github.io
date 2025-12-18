@@ -8,7 +8,6 @@
     :root{
       --bg1:#0b1020;
       --bg2:#101a3a;
-      --card:rgba(255,255,255,.06);
       --text:rgba(255,255,255,.92);
       --muted:rgba(255,255,255,.70);
       --muted2:rgba(255,255,255,.55);
@@ -256,9 +255,7 @@
     .stat .sub{ margin-top: 6px; font-size: 12.5px; color: var(--muted2); line-height:1.25; }
 
     .big{ grid-column: 1 / -1; display:flex; align-items:flex-end; justify-content:space-between; gap: 10px; }
-
     .timer{ font-family: var(--mono); font-size: 28px; font-weight: 900; letter-spacing: .8px; margin:0; }
-
     .status{ display:flex; flex-wrap:wrap; gap: 8px; justify-content:flex-end; }
 
     .modal{ position: fixed; inset: 0; display:none; place-items:center; background: rgba(0,0,0,.55); z-index: 1000; padding: 18px; }
@@ -289,7 +286,6 @@
     .resultline strong{ color: rgba(255,255,255,.92); }
 
     .note{ margin-top: 12px; color: var(--muted2); font-size: 12.5px; line-height: 1.35; }
-
     .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
   </style>
 </head>
@@ -300,7 +296,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Indraveer Typing Practice</h1>
-          <p class="subtitle">No-backspace typing test • speed + accuracy for exam practice</p>
+          <p class="subtitle">No-backspace typing test • plain English with normal punctuation</p>
         </div>
       </div>
       <div class="header-actions">
@@ -312,7 +308,7 @@
     </header>
 
     <main>
-      <!-- Left: Rules + character set -->
+      <!-- Left -->
       <section class="card">
         <div class="card-h">
           <p class="title">Rules & Characters</p>
@@ -321,14 +317,14 @@
           <div class="rule"><span class="dot good"></span><span>Timer runs for ten minutes. Results lock when time ends.</span></div>
           <div class="rule"><span class="dot bad"></span><span>Backspace and Delete are blocked for strict practice.</span></div>
           <div class="rule"><span class="dot"></span><span>Typing is sequential (cursor is forced to the end).</span></div>
-          <div class="rule"><span class="dot"></span><span>Paste is disabled to keep the score genuine.</span></div>
+          <div class="rule"><span class="dot"></span><span>Paste and undo are disabled to keep the score genuine.</span></div>
 
           <div style="margin-top:14px; color:var(--muted); font-size:13px;">Characters used in the target text:</div>
           <div id="kbd" class="kbdgrid" aria-label="Character set"></div>
         </div>
       </section>
 
-      <!-- Center: Target + typing -->
+      <!-- Center -->
       <section class="card">
         <div class="card-h">
           <p class="title">Target Text</p>
@@ -336,7 +332,7 @@
             <span id="lenInfo">Length: —</span>
           </div>
         </div>
-        <div class="card-b center-wrap">
+        <div class="card-b" style="display:flex; flex-direction:column; gap:12px;">
           <div class="progress" aria-label="progress"><div id="prog"></div></div>
           <div id="target" class="target" aria-label="Target text area"></div>
           <div>
@@ -350,7 +346,7 @@
         </div>
       </section>
 
-      <!-- Right: Stats -->
+      <!-- Right -->
       <section class="card">
         <div class="card-h">
           <p class="title">Live Stats</p>
@@ -370,7 +366,7 @@
             <div class="stat">
               <p class="k">Gross WPM</p>
               <p id="grossWpm" class="v">0</p>
-              <div class="sub">total characters ÷ 5 ÷ minutes</div>
+              <div class="sub">total characters ÷ five ÷ minutes</div>
             </div>
 
             <div class="stat">
@@ -386,7 +382,7 @@
             </div>
 
             <div class="stat">
-              <p class="k">Errors</p>
+              <p class="k">Total errors</p>
               <p id="err" class="v">0</p>
               <div class="sub">incorrect characters</div>
             </div>
@@ -405,7 +401,8 @@
           </div>
 
           <div style="margin-top:14px; color:var(--muted2); font-size:12.5px; line-height:1.35;">
-            Net speed is computed using: total characters, total words (characters ÷ 5), allowable errors (five percent of total words), final mistakes, then net speed per minute.
+            Net speed is computed from total characters, total words (characters ÷ five), allowable errors (five percent),
+            final mistakes, then net speed per minute.
           </div>
         </div>
       </section>
@@ -423,50 +420,51 @@
       <div class="modal-b">
         <div id="resultLines"></div>
         <div class="note">
-          Exam net speed formula: total words minus (final mistakes multiplied by ten), then divided by minutes. Final mistakes are total errors minus allowable errors (if negative, treated as zero).
+          Exam net speed formula: total words minus (final mistakes multiplied by ten), then divided by minutes.
+          Final mistakes are total errors minus allowable errors (if negative, treated as zero).
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Load your existing static word bank -->
+  <!-- Your existing static word bank -->
   <script src="words.js"></script>
 
   <script>
-    // Indraveer Typing Practice (static, no dependencies)
-
     const DURATION_SEC = 10 * 60;
 
-    // Only typical English punctuation (no digits in the target generator).
-    const PUNCT = [".", ",", ";", ":", "!", "?", "\"", "'", "-", "(", ")"]; 
+    // Normal English punctuation only (no digits in target text generation)
+    const PUNCT = [".", ",", ";", ":", "!", "?", "\"", "'", "-", "(", ")"];
 
-    // Word bank from words.js
     const WORDS = (Array.isArray(window.WORDS) && window.WORDS.length >= 1000)
       ? window.WORDS
-      : ["the","and","to","of","in","a","is","that","for","it","practice","typing","speed","accuracy","exam","question","answer"];
+      : ["the","and","to","of","in","a","is","that","for","it","practice","typing","speed","accuracy","exam"];
 
     const $ = (id) => document.getElementById(id);
+
     const btnStart = $("btnStart");
     const btnReset = $("btnReset");
-    const btnNew = $("btnNew");
+    const btnNew   = $("btnNew");
     const btnClose = $("btnClose");
-    const typebox = $("typebox");
+
+    const typebox  = $("typebox");
     const targetEl = $("target");
-    const progEl = $("prog");
-    const timerEl = $("timer");
-    const lenInfo = $("lenInfo");
-    const toastEl = $("toast");
-    const modal = $("modal");
+    const progEl   = $("prog");
+    const timerEl  = $("timer");
+    const lenInfo  = $("lenInfo");
+
+    const toastEl  = $("toast");
+    const modal    = $("modal");
     const resultLines = $("resultLines");
     const statePill = $("statePill");
-    const liveWarn = $("liveWarn");
+    const liveWarn  = $("liveWarn");
 
     const grossWpmEl = $("grossWpm");
-    const netWpmEl = $("netWpm");
-    const accEl = $("acc");
-    const errEl = $("err");
+    const netWpmEl   = $("netWpm");
+    const accEl      = $("acc");
+    const errEl      = $("err");
     const allowErrEl = $("allowErr");
-    const finalMistEl = $("finalMist");
+    const finalMistEl= $("finalMist");
 
     let targetText = "";
     let targetSpans = [];
@@ -490,9 +488,9 @@
 
     function showToast(msg){
       toastEl.textContent = msg;
-      toastEl.classList.add('show');
+      toastEl.classList.add("show");
       clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toastEl.classList.remove('show'), 900);
+      showToast._t = setTimeout(() => toastEl.classList.remove("show"), 900);
     }
 
     function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
@@ -501,40 +499,33 @@
       const chars = [];
       for (let c=65; c<=90; c++) chars.push(String.fromCharCode(c));   // A-Z
       for (let c=97; c<=122; c++) chars.push(String.fromCharCode(c));  // a-z
-      chars.push(' ');
+      chars.push(" ");
       for (const p of PUNCT) chars.push(p);
 
       const kbd = $("kbd");
       kbd.innerHTML = "";
       for (const ch of chars){
-        const d = document.createElement('div');
-        d.className = 'key';
-        d.textContent = ch === ' ' ? '␠' : ch;
-        d.title = ch === ' ' ? 'Space' : ch;
+        const d = document.createElement("div");
+        d.className = "key";
+        d.textContent = ch === " " ? "␠" : ch;
+        d.title = ch === " " ? "Space" : ch;
         kbd.appendChild(d);
       }
     }
 
     function randomWord(){
-      // WORDS list is expected to be lowercase words.
-      return WORDS[randInt(0, WORDS.length-1)];
-    }
-
-    function randomPunct(){
-      return PUNCT[randInt(0, PUNCT.length-1)];
+      return WORDS[randInt(0, WORDS.length - 1)];
     }
 
     function generateTarget(minChars = 5200){
-      // Plain English text with common punctuation. No digits.
+      // Plain English text with normal punctuation. No digits.
       const parts = [];
       let len = 0;
 
       while (len < minChars){
         const sentenceLen = randInt(9, 17);
         const words = [];
-        for (let i=0;i<sentenceLen;i++){
-          words.push(randomWord());
-        }
+        for (let i=0;i<sentenceLen;i++) words.push(randomWord());
 
         // Capitalize first word
         words[0] = words[0][0].toUpperCase() + words[0].slice(1);
@@ -546,12 +537,13 @@
           words[k] = words[k] + mid;
         }
 
-        // End punctuation and occasional question
-        const end = Math.random() < 0.22 ? "?" : ".";
-        let sentence = words.join(' ') + end;
+        // End punctuation (mostly ., sometimes ?, rarely !)
+        const r = Math.random();
+        const end = r < 0.12 ? "?" : (r < 0.18 ? "!" : ".");
+        let sentence = words.join(" ") + end;
 
         // Occasional quotes or parentheses
-        if (Math.random() < 0.18) sentence = `\"${sentence}\"`;
+        if (Math.random() < 0.18) sentence = `"${sentence}"`;
         if (Math.random() < 0.10) sentence = `(${sentence})`;
 
         parts.push(sentence);
@@ -560,10 +552,10 @@
         if (Math.random() < 0.12) parts.push("\n\n");
         else parts.push(" ");
 
-        len = parts.join('').length;
+        len = parts.join("").length;
       }
 
-      return parts.join('');
+      return parts.join("");
     }
 
     function renderTarget(text){
@@ -572,8 +564,8 @@
 
       const frag = document.createDocumentFragment();
       for (let i=0;i<targetText.length;i++){
-        const span = document.createElement('span');
-        span.className = 'c';
+        const span = document.createElement("span");
+        span.className = "c";
         span.textContent = targetText[i];
         frag.appendChild(span);
         targetSpans.push(span);
@@ -583,13 +575,13 @@
 
       lenInfo.textContent = `Length: ${targetText.length.toLocaleString()} chars`;
       updateCursor(0);
-      progEl.style.width = '0%';
+      progEl.style.width = "0%";
     }
 
     function updateCursor(pos){
-      const old = targetEl.querySelector('.cursor');
-      if (old) old.classList.remove('cursor');
-      if (pos >= 0 && pos < targetSpans.length) targetSpans[pos].classList.add('cursor');
+      const old = targetEl.querySelector(".cursor");
+      if (old) old.classList.remove("cursor");
+      if (pos >= 0 && pos < targetSpans.length) targetSpans[pos].classList.add("cursor");
     }
 
     function scrollCursorIntoView(pos){
@@ -606,25 +598,24 @@
     }
 
     function setState(label){
-      const strong = statePill.querySelector('strong');
-      strong.textContent = label;
+      statePill.querySelector("strong").textContent = label;
     }
 
     function resetStatsUI(){
-      grossWpmEl.textContent = '0';
-      netWpmEl.textContent = '0';
-      accEl.textContent = '100%';
-      errEl.textContent = '0';
-      allowErrEl.textContent = '0';
-      finalMistEl.textContent = '0';
-      timerEl.textContent = '10:00';
-      progEl.style.width = '0%';
-      liveWarn.textContent = '';
+      grossWpmEl.textContent = "0";
+      netWpmEl.textContent = "0";
+      accEl.textContent = "100%";
+      errEl.textContent = "0";
+      allowErrEl.textContent = "0";
+      finalMistEl.textContent = "0";
+      timerEl.textContent = "10:00";
+      progEl.style.width = "0%";
+      liveWarn.textContent = "";
     }
 
     function clearMarking(){
       for (let i=0;i<targetSpans.length;i++){
-        targetSpans[i].classList.remove('correct','incorrect');
+        targetSpans[i].classList.remove("correct","incorrect");
       }
       updateCursor(0);
       targetEl.scrollTop = 0;
@@ -640,6 +631,7 @@
       return Math.max(elapsedSec / 60, 1/60);
     }
 
+    // Screenshot formula
     function computeExamMetrics(minutes){
       const totalChars = typed.length;
       const totalWords = totalChars / 5;
@@ -649,19 +641,9 @@
 
       const grossWpm = totalWords / minutes;
       const netExamWpm = Math.max(0, (totalWords - (finalMistakes * 10)) / minutes);
-
       const accuracy = totalChars ? (correct / totalChars) * 100 : 100;
 
-      return {
-        totalChars,
-        totalWords,
-        allowableErrors,
-        totalErrors,
-        finalMistakes,
-        grossWpm,
-        netExamWpm,
-        accuracy,
-      };
+      return { totalChars, totalWords, allowableErrors, totalErrors, finalMistakes, grossWpm, netExamWpm, accuracy };
     }
 
     function updateLiveStats(nowPerf){
@@ -699,7 +681,7 @@
       if (running) return;
       running = true;
       startPerf = performance.now();
-      setState('Running');
+      setState("Running");
 
       btnStart.disabled = true;
       btnNew.disabled = true;
@@ -710,6 +692,7 @@
       typed = "";
       correct = 0;
       errors = 0;
+
       clearMarking();
       resetStatsUI();
 
@@ -717,14 +700,14 @@
       forceCaretToEnd();
 
       rafId = requestAnimationFrame(tick);
-      showToast('Test started. Backspace/Delete disabled.');
+      showToast("Test started. Backspace/Delete disabled.");
     }
 
     function stopTest(){
       if (!running) return;
       running = false;
       cancelAnimationFrame(rafId);
-      setState('Completed');
+      setState("Completed");
 
       typebox.disabled = true;
       btnStart.disabled = false;
@@ -732,7 +715,7 @@
       btnReset.disabled = false;
 
       updateLiveStats(performance.now());
-      timerEl.textContent = '00:00';
+      timerEl.textContent = "00:00";
 
       openResults();
     }
@@ -740,13 +723,14 @@
     function hardReset(){
       running = false;
       cancelAnimationFrame(rafId);
-      setState('Ready');
+      setState("Ready");
 
       typebox.disabled = true;
       typebox.value = "";
       typed = "";
       correct = 0;
       errors = 0;
+
       resetStatsUI();
       clearMarking();
 
@@ -754,12 +738,12 @@
       btnNew.disabled = false;
       btnReset.disabled = true;
 
-      showToast('Reset done.');
+      showToast("Reset done.");
     }
 
     function newText(){
       if (running){
-        showToast('Finish or reset the test before generating new text.');
+        showToast("Finish or reset the test before generating new text.");
         return;
       }
       renderTarget(generateTarget());
@@ -781,17 +765,17 @@
         ["Accuracy", `${m.accuracy.toFixed(2)}%`],
       ];
 
-      resultLines.innerHTML = lines.map(([k,v]) => (
+      resultLines.innerHTML = lines.map(([k,v]) =>
         `<div class="resultline"><span>${k}</span><strong>${v}</strong></div>`
-      )).join('');
+      ).join("");
 
-      modal.classList.add('show');
-      modal.setAttribute('aria-hidden','false');
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden","false");
     }
 
     function closeResults(){
-      modal.classList.remove('show');
-      modal.setAttribute('aria-hidden','true');
+      modal.classList.remove("show");
+      modal.setAttribute("aria-hidden","true");
     }
 
     function onTypeInput(){
@@ -803,7 +787,7 @@
       if (val.length < typed.length){
         typebox.value = typed;
         forceCaretToEnd();
-        liveWarn.textContent = 'Deletion is disabled.';
+        liveWarn.textContent = "Deletion is disabled.";
         return;
       }
 
@@ -811,7 +795,7 @@
 
       const added = val.slice(typed.length);
       if (!added) return;
-      liveWarn.textContent = '';
+      liveWarn.textContent = "";
 
       for (let i=0;i<added.length;i++){
         const ch = added[i];
@@ -824,9 +808,8 @@
         else errors++;
 
         if (pos < targetSpans.length){
-          targetSpans[pos].classList.add(ok ? 'correct' : 'incorrect');
+          targetSpans[pos].classList.add(ok ? "correct" : "incorrect");
         }
-
         updateCursor(pos + 1);
       }
 
@@ -834,40 +817,44 @@
 
       if (typed.length >= targetText.length - 2){
         stopTest();
-        showToast('Target text completed early; test ended.');
+        showToast("Target text completed early; test ended.");
       }
     }
 
     function onKeyDown(e){
       if (!running) return;
 
-      if (e.key === 'Backspace' || e.key === 'Delete'){
+      // Block Backspace/Delete
+      if (e.key === "Backspace" || e.key === "Delete"){
         e.preventDefault();
-        showToast('Backspace/Delete is not allowed.');
+        showToast("Backspace/Delete is not allowed.");
         return;
       }
 
-      const blocked = ['ArrowLeft','ArrowUp','ArrowRight','ArrowDown','Home','End','PageUp','PageDown'];
+      // Block cursor navigation
+      const blocked = ["ArrowLeft","ArrowUp","ArrowRight","ArrowDown","Home","End","PageUp","PageDown"];
       if (blocked.includes(e.key)){
         e.preventDefault();
-        showToast('Cursor movement is disabled.');
+        showToast("Cursor movement is disabled.");
         forceCaretToEnd();
         return;
       }
 
+      // Block copy/cut/paste/undo/redo/select all
       const ctrl = e.ctrlKey || e.metaKey;
-      if (ctrl && ['a','x','v','z','y'].includes(e.key.toLowerCase())){
+      if (ctrl && ["a","x","v","z","y"].includes(e.key.toLowerCase())){
         e.preventDefault();
-        showToast('Copy/Cut/Paste/Undo/Redo is disabled during the test.');
+        showToast("Copy/Cut/Paste/Undo/Redo is disabled during the test.");
         return;
       }
 
-      if (e.key === 'Enter'){
+      // Only allow Enter when the target expects a newline
+      if (e.key === "Enter"){
         const pos = typed.length;
-        const expected = targetText[pos] ?? '';
-        if (expected !== '\n'){
+        const expected = targetText[pos] ?? "";
+        if (expected !== "\n"){
           e.preventDefault();
-          showToast('Enter is not expected here.');
+          showToast("Enter is not expected here.");
         }
       }
     }
@@ -875,30 +862,31 @@
     function onPaste(e){
       if (!running) return;
       e.preventDefault();
-      showToast('Paste is disabled.');
+      showToast("Paste is disabled.");
     }
 
     function onDrop(e){
       if (!running) return;
       e.preventDefault();
-      showToast('Drop is disabled.');
+      showToast("Drop is disabled.");
     }
 
-    btnStart.addEventListener('click', startTest);
-    btnReset.addEventListener('click', hardReset);
-    btnNew.addEventListener('click', newText);
-    btnClose.addEventListener('click', closeResults);
+    // Wire up
+    btnStart.addEventListener("click", startTest);
+    btnReset.addEventListener("click", hardReset);
+    btnNew.addEventListener("click", newText);
+    btnClose.addEventListener("click", closeResults);
 
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeResults(); });
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeResults(); });
 
-    typebox.addEventListener('input', onTypeInput);
-    typebox.addEventListener('keydown', onKeyDown);
-    typebox.addEventListener('paste', onPaste);
-    typebox.addEventListener('drop', onDrop);
-    typebox.addEventListener('contextmenu', (e) => { if (running) e.preventDefault(); });
-    typebox.addEventListener('mouseup', () => { if (running) forceCaretToEnd(); });
-    typebox.addEventListener('keyup', () => { if (running) forceCaretToEnd(); });
-    typebox.addEventListener('focus', () => { if (running) forceCaretToEnd(); });
+    typebox.addEventListener("input", onTypeInput);
+    typebox.addEventListener("keydown", onKeyDown);
+    typebox.addEventListener("paste", onPaste);
+    typebox.addEventListener("drop", onDrop);
+    typebox.addEventListener("contextmenu", (e) => { if (running) e.preventDefault(); });
+    typebox.addEventListener("mouseup", () => { if (running) forceCaretToEnd(); });
+    typebox.addEventListener("keyup", () => { if (running) forceCaretToEnd(); });
+    typebox.addEventListener("focus", () => { if (running) forceCaretToEnd(); });
 
     // Init
     buildKeyboard();
