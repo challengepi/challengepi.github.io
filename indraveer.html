@@ -79,6 +79,7 @@
       letter-spacing:.15px;
       box-shadow: 0 10px 26px rgba(0,0,0,.18);
       transition: transform .12s ease, border-color .12s ease, background .12s ease;
+      white-space:nowrap;
     }
     .btn:hover{ transform: translateY(-1px); border-color: var(--stroke2); background: rgba(255,255,255,.07); }
     .btn:active{ transform: translateY(0px); }
@@ -99,7 +100,7 @@
       user-select:none;
     }
 
-    main{ display:grid; grid-template-columns: 300px 1fr 320px; gap: 14px; }
+    main{ display:grid; grid-template-columns: 300px 1fr 340px; gap: 14px; }
     @media (max-width: 1040px){ main{ grid-template-columns: 1fr; } }
 
     .card{
@@ -148,8 +149,6 @@
       color: rgba(255,255,255,.82);
       user-select:none;
     }
-
-    .center-wrap{ display:flex; flex-direction:column; gap: 12px; }
 
     .progress{
       height: 10px;
@@ -258,11 +257,98 @@
     .timer{ font-family: var(--mono); font-size: 28px; font-weight: 900; letter-spacing: .8px; margin:0; }
     .status{ display:flex; flex-wrap:wrap; gap: 8px; justify-content:flex-end; }
 
+    .divider{ margin: 14px 0 0; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.10); }
+
+    .history-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 12px;
+      flex-wrap:wrap;
+      margin-bottom: 10px;
+    }
+
+    .mini{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      align-items:center;
+      color: var(--muted2);
+      font-size: 12.5px;
+      line-height: 1.25;
+    }
+    .mini strong{ color: rgba(255,255,255,.92); }
+
+    .history-actions{ display:flex; gap: 8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .tablewrap{
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      background: rgba(0,0,0,.12);
+      overflow:hidden;
+    }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    thead th{
+      text-align:left;
+      padding: 10px 10px;
+      background: rgba(255,255,255,.04);
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      color: rgba(255,255,255,.80);
+      font-weight: 750;
+      letter-spacing:.15px;
+      white-space:nowrap;
+    }
+    tbody td{
+      padding: 9px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      color: rgba(255,255,255,.86);
+      white-space:nowrap;
+    }
+    tbody tr:last-child td{ border-bottom:none; }
+    tbody td.muted{ color: var(--muted2); }
+    .scroll{
+      max-height: 260px;
+      overflow:auto;
+    }
+
+    .spark{
+      display:flex;
+      align-items:flex-end;
+      gap: 6px;
+      height: 60px;
+      padding: 10px 10px 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      background: rgba(0,0,0,.12);
+      margin-bottom: 10px;
+      overflow:hidden;
+    }
+    .bar{
+      width: 10px;
+      border-radius: 999px;
+      background: rgba(0, 212, 255, .35);
+      outline: 1px solid rgba(255,255,255,.08);
+      flex: 0 0 auto;
+    }
+    .bar.best{
+      background: rgba(61, 220, 151, .38);
+      outline-color: rgba(61, 220, 151, .22);
+    }
+    .barlabel{
+      font-size: 11px;
+      color: var(--muted2);
+      text-align:center;
+      margin-top: 6px;
+    }
+
     .modal{ position: fixed; inset: 0; display:none; place-items:center; background: rgba(0,0,0,.55); z-index: 1000; padding: 18px; }
     .modal.show{ display:grid; }
-
     .modal-card{
-      width: min(760px, 100%);
+      width: min(780px, 100%);
       border-radius: 24px;
       border: 1px solid rgba(255,255,255,.14);
       background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
@@ -280,12 +366,11 @@
     }
     .modal-h h2{ margin:0; font-size: 16px; letter-spacing:.2px; }
     .modal-b{ padding: 16px 18px 18px; }
-
     .resultline{ display:flex; justify-content:space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.08); color: var(--muted); font-size: 13.5px; }
     .resultline:last-child{ border-bottom:none; }
     .resultline strong{ color: rgba(255,255,255,.92); }
-
     .note{ margin-top: 12px; color: var(--muted2); font-size: 12.5px; line-height: 1.35; }
+
     .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
   </style>
 </head>
@@ -333,7 +418,7 @@
           </div>
         </div>
         <div class="card-b" style="display:flex; flex-direction:column; gap:12px;">
-          <div class="progress" aria-label="progress"><div id="prog"></div></div>
+          <div class="progress" aria-label="time progress"><div id="prog"></div></div>
           <div id="target" class="target" aria-label="Target text area"></div>
           <div>
             <label class="sr-only" for="typebox">Typing input</label>
@@ -349,7 +434,7 @@
       <!-- Right -->
       <section class="card">
         <div class="card-h">
-          <p class="title">Live Stats</p>
+          <p class="title">Stats & History</p>
         </div>
         <div class="card-b">
           <div class="statgrid">
@@ -372,7 +457,7 @@
             <div class="stat">
               <p class="k">Net speed (exam)</p>
               <p id="netWpm" class="v">0</p>
-              <div class="sub">uses allowable errors rule</div>
+              <div class="sub">allowable errors rule</div>
             </div>
 
             <div class="stat">
@@ -400,9 +485,45 @@
             </div>
           </div>
 
-          <div style="margin-top:14px; color:var(--muted2); font-size:12.5px; line-height:1.35;">
-            Net speed is computed from total characters, total words (characters ÷ five), allowable errors (five percent),
-            final mistakes, then net speed per minute.
+          <div class="divider">
+            <div class="history-top">
+              <div>
+                <div style="color:rgba(255,255,255,.86); font-weight:800; letter-spacing:.15px; font-size:13px;">
+                  History (last 20 days)
+                </div>
+                <div id="historyMini" class="mini" style="margin-top:6px;">No tests saved yet.</div>
+              </div>
+              <div class="history-actions">
+                <button id="btnExport" class="btn" type="button">Export CSV</button>
+                <button id="btnClearHistory" class="btn danger" type="button">Clear</button>
+              </div>
+            </div>
+
+            <div id="spark" class="spark" aria-label="Daily best net speed chart"></div>
+
+            <div class="tablewrap">
+              <div class="scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Tests</th>
+                      <th>Best Net</th>
+                      <th>Avg Net</th>
+                      <th>Best Acc</th>
+                      <th>Avg Acc</th>
+                    </tr>
+                  </thead>
+                  <tbody id="historyTable">
+                    <tr><td class="muted" colspan="6">No history yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div style="margin-top:10px; color:var(--muted2); font-size:12.5px; line-height:1.35;">
+              Storage is pruned automatically to keep the site fast. Only the last twenty days are kept.
+            </div>
           </div>
         </div>
       </section>
@@ -431,40 +552,55 @@
   <script src="words.js"></script>
 
   <script>
+    // -------------------------
+    // Indraveer Typing Practice
+    // -------------------------
+
     const DURATION_SEC = 10 * 60;
 
-    // Normal English punctuation only (no digits in target text generation)
+    // Normal English punctuation only (no digits in target generator).
     const PUNCT = [".", ",", ";", ":", "!", "?", "\"", "'", "-", "(", ")"];
 
+    // History storage (small + pruned)
+    const STORAGE_KEY = "indraveer_typing_history_v1";
+    const KEEP_DAYS = 20;
+    const MAX_SESSIONS = 200; // safety cap
+
+    // Word bank from words.js
     const WORDS = (Array.isArray(window.WORDS) && window.WORDS.length >= 1000)
       ? window.WORDS
-      : ["the","and","to","of","in","a","is","that","for","it","practice","typing","speed","accuracy","exam"];
+      : ["the","and","to","of","in","a","is","that","for","it","practice","typing","speed","accuracy","exam","question","answer"];
 
     const $ = (id) => document.getElementById(id);
 
     const btnStart = $("btnStart");
     const btnReset = $("btnReset");
-    const btnNew   = $("btnNew");
+    const btnNew = $("btnNew");
     const btnClose = $("btnClose");
+    const btnExport = $("btnExport");
+    const btnClearHistory = $("btnClearHistory");
 
-    const typebox  = $("typebox");
+    const typebox = $("typebox");
     const targetEl = $("target");
-    const progEl   = $("prog");
-    const timerEl  = $("timer");
-    const lenInfo  = $("lenInfo");
-
-    const toastEl  = $("toast");
-    const modal    = $("modal");
+    const progEl = $("prog");
+    const timerEl = $("timer");
+    const lenInfo = $("lenInfo");
+    const toastEl = $("toast");
+    const modal = $("modal");
     const resultLines = $("resultLines");
     const statePill = $("statePill");
-    const liveWarn  = $("liveWarn");
+    const liveWarn = $("liveWarn");
 
     const grossWpmEl = $("grossWpm");
-    const netWpmEl   = $("netWpm");
-    const accEl      = $("acc");
-    const errEl      = $("err");
+    const netWpmEl = $("netWpm");
+    const accEl = $("acc");
+    const errEl = $("err");
     const allowErrEl = $("allowErr");
-    const finalMistEl= $("finalMist");
+    const finalMistEl = $("finalMist");
+
+    const historyTable = $("historyTable");
+    const historyMini = $("historyMini");
+    const spark = $("spark");
 
     let targetText = "";
     let targetSpans = [];
@@ -518,7 +654,7 @@
     }
 
     function generateTarget(minChars = 5200){
-      // Plain English text with normal punctuation. No digits.
+      // Plain English with punctuation. No digits.
       const parts = [];
       let len = 0;
 
@@ -530,19 +666,19 @@
         // Capitalize first word
         words[0] = words[0][0].toUpperCase() + words[0].slice(1);
 
-        // Add one mid punctuation sometimes
+        // Mid punctuation
         if (Math.random() < 0.38){
           const k = randInt(2, Math.min(sentenceLen-2, 9));
           const mid = [",",";",":"][randInt(0,2)];
           words[k] = words[k] + mid;
         }
 
-        // End punctuation (mostly ., sometimes ?, rarely !)
+        // Sentence end punctuation
         const r = Math.random();
         const end = r < 0.12 ? "?" : (r < 0.18 ? "!" : ".");
         let sentence = words.join(" ") + end;
 
-        // Occasional quotes or parentheses
+        // Sometimes add quotes/parentheses
         if (Math.random() < 0.18) sentence = `"${sentence}"`;
         if (Math.random() < 0.10) sentence = `(${sentence})`;
 
@@ -575,7 +711,23 @@
 
       lenInfo.textContent = `Length: ${targetText.length.toLocaleString()} chars`;
       updateCursor(0);
-      progEl.style.width = "0%";
+      targetEl.scrollTop = 0;
+    }
+
+    // If user reaches end early, append more text (continue till 10 minutes)
+    function appendMoreTarget(extraChars = 2200){
+      const extra = generateTarget(extraChars);
+      const frag = document.createDocumentFragment();
+      for (let i=0;i<extra.length;i++){
+        const span = document.createElement("span");
+        span.className = "c";
+        span.textContent = extra[i];
+        frag.appendChild(span);
+        targetSpans.push(span);
+      }
+      targetText += extra;
+      targetEl.appendChild(frag);
+      lenInfo.textContent = `Length: ${targetText.length.toLocaleString()} chars`;
     }
 
     function updateCursor(pos){
@@ -633,14 +785,16 @@
 
     // Screenshot formula
     function computeExamMetrics(minutes){
-      const totalChars = typed.length;
-      const totalWords = totalChars / 5;
-      const allowableErrors = totalWords * 0.05;
-      const totalErrors = errors;
-      const finalMistakes = Math.max(0, totalErrors - allowableErrors);
+      const totalChars = typed.length;            // Total Characters: all keystrokes made
+      const totalWords = totalChars / 5;          // Total Words: Total Characters / 5
+      const allowableErrors = totalWords * 0.05;  // Allowable Errors: 5% of total words
+      const totalErrors = errors;                 // Total Errors: count of mistakes
+      const finalMistakes = Math.max(0, totalErrors - allowableErrors); // Final mistakes (>= 0)
 
+      // Net Speed (WPM): (Total Words - (Final Mistakes * 10)) / minutes
       const grossWpm = totalWords / minutes;
       const netExamWpm = Math.max(0, (totalWords - (finalMistakes * 10)) / minutes);
+
       const accuracy = totalChars ? (correct / totalChars) * 100 : 100;
 
       return { totalChars, totalWords, allowableErrors, totalErrors, finalMistakes, grossWpm, netExamWpm, accuracy };
@@ -656,9 +810,6 @@
       errEl.textContent = m.totalErrors.toString();
       allowErrEl.textContent = m.allowableErrors.toFixed(2);
       finalMistEl.textContent = m.finalMistakes.toFixed(2);
-
-      const pct = targetText.length ? (typed.length / targetText.length) * 100 : 0;
-      progEl.style.width = `${clamp(pct, 0, 100).toFixed(2)}%`;
     }
 
     function tick(){
@@ -666,7 +817,12 @@
       const now = performance.now();
       const elapsed = clamp((now - startPerf) / 1000, 0, DURATION_SEC);
       const left = DURATION_SEC - elapsed;
+
       timerEl.textContent = formatTime(left);
+
+      // Progress bar as TIME progress (stable even if target becomes infinite)
+      const pct = (elapsed / DURATION_SEC) * 100;
+      progEl.style.width = `${clamp(pct, 0, 100).toFixed(2)}%`;
 
       updateLiveStats(now);
 
@@ -679,6 +835,11 @@
 
     function startTest(){
       if (running) return;
+
+      // Randomize target every test (your requirement)
+      renderTarget(generateTarget());
+      clearMarking();
+
       running = true;
       startPerf = performance.now();
       setState("Running");
@@ -692,8 +853,6 @@
       typed = "";
       correct = 0;
       errors = 0;
-
-      clearMarking();
       resetStatsUI();
 
       typebox.focus();
@@ -705,6 +864,7 @@
 
     function stopTest(){
       if (!running) return;
+
       running = false;
       cancelAnimationFrame(rafId);
       setState("Completed");
@@ -714,10 +874,26 @@
       btnNew.disabled = false;
       btnReset.disabled = false;
 
-      updateLiveStats(performance.now());
-      timerEl.textContent = "00:00";
+      // Final update uses full 10 minutes as per exam test
+      const mins = DURATION_SEC / 60;
+      const m = computeExamMetrics(mins);
 
-      openResults();
+      timerEl.textContent = "00:00";
+      openResults(m);
+
+      // Save result day-wise
+      saveSession({
+        ts: Date.now(),
+        grossWpm: Math.floor(m.grossWpm + 1e-9),
+        netWpm: Math.floor(m.netExamWpm + 1e-9),
+        acc: Number(m.accuracy.toFixed(2)),
+        totalChars: m.totalChars,
+        totalErrors: m.totalErrors,
+        allowableErrors: Number(m.allowableErrors.toFixed(2)),
+        finalMistakes: Number(m.finalMistakes.toFixed(2)),
+      });
+
+      renderHistory();
     }
 
     function hardReset(){
@@ -750,10 +926,7 @@
       hardReset();
     }
 
-    function openResults(){
-      const mins = DURATION_SEC / 60;
-      const m = computeExamMetrics(mins);
-
+    function openResults(m){
       const lines = [
         ["Total characters", m.totalChars.toLocaleString()],
         ["Total words (characters ÷ five)", m.totalWords.toFixed(2)],
@@ -778,12 +951,13 @@
       modal.setAttribute("aria-hidden","true");
     }
 
+    // Strict no-delete + continuous typing
     function onTypeInput(){
       if (!running) return;
 
       const val = typebox.value;
 
-      // Enforce no deletion
+      // Enforce no deletion (including select-delete)
       if (val.length < typed.length){
         typebox.value = typed;
         forceCaretToEnd();
@@ -800,6 +974,12 @@
       for (let i=0;i<added.length;i++){
         const ch = added[i];
         const pos = typed.length;
+
+        // If user reached end early, append more target so they can continue
+        if (pos >= targetText.length - 1){
+          appendMoreTarget(2200);
+        }
+
         const expected = targetText[pos] ?? "";
         const ok = (ch === expected);
 
@@ -814,11 +994,6 @@
       }
 
       scrollCursorIntoView(typed.length);
-
-      if (typed.length >= targetText.length - 2){
-        stopTest();
-        showToast("Target text completed early; test ended.");
-      }
     }
 
     function onKeyDown(e){
@@ -831,7 +1006,7 @@
         return;
       }
 
-      // Block cursor navigation
+      // Block cursor movement keys
       const blocked = ["ArrowLeft","ArrowUp","ArrowRight","ArrowDown","Home","End","PageUp","PageDown"];
       if (blocked.includes(e.key)){
         e.preventDefault();
@@ -871,14 +1046,220 @@
       showToast("Drop is disabled.");
     }
 
-    // Wire up
+    // -----------------
+    // History functions
+    // -----------------
+
+    function localDayKey(ts){
+      const d = new Date(ts);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const da = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${da}`;
+    }
+
+    function cutoffTimestamp(){
+      const now = new Date();
+      const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const cut = new Date(startToday);
+      cut.setDate(cut.getDate() - (KEEP_DAYS - 1));
+      return cut.getTime();
+    }
+
+    function loadHistory(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      }catch{
+        return [];
+      }
+    }
+
+    function saveHistory(arr){
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+      }catch{
+        // If storage is full or blocked, silently ignore
+      }
+    }
+
+    function pruneHistory(arr){
+      const cut = cutoffTimestamp();
+      let out = arr.filter(x => x && typeof x.ts === "number" && x.ts >= cut);
+
+      // keep newest first
+      out.sort((a,b) => b.ts - a.ts);
+
+      // cap to MAX_SESSIONS
+      if (out.length > MAX_SESSIONS) out = out.slice(0, MAX_SESSIONS);
+
+      return out;
+    }
+
+    function saveSession(session){
+      const hist = pruneHistory(loadHistory());
+      hist.unshift(session);
+      saveHistory(pruneHistory(hist));
+    }
+
+    function groupByDay(hist){
+      const map = new Map();
+      for (const s of hist){
+        const key = localDayKey(s.ts);
+        if (!map.has(key)) map.set(key, []);
+        map.get(key).push(s);
+      }
+      return map;
+    }
+
+    function avg(nums){
+      if (!nums.length) return 0;
+      return nums.reduce((a,b)=>a+b,0) / nums.length;
+    }
+
+    function renderHistory(){
+      const hist = pruneHistory(loadHistory());
+      if (!hist.length){
+        historyMini.textContent = "No tests saved yet.";
+        historyTable.innerHTML = `<tr><td class="muted" colspan="6">No history yet.</td></tr>`;
+        spark.innerHTML = "";
+        return;
+      }
+
+      const byDay = groupByDay(hist);
+
+      // Build daily summaries (descending by day)
+      const days = Array.from(byDay.keys()).sort((a,b) => (a < b ? 1 : -1));
+      const rows = [];
+
+      const daily = days.map(day => {
+        const sessions = byDay.get(day);
+        const nets = sessions.map(s => Number(s.netWpm || 0));
+        const accs = sessions.map(s => Number(s.acc || 0));
+        return {
+          day,
+          count: sessions.length,
+          bestNet: Math.max(...nets),
+          avgNet: avg(nets),
+          bestAcc: Math.max(...accs),
+          avgAcc: avg(accs),
+        };
+      });
+
+      for (const d of daily){
+        rows.push(`
+          <tr>
+            <td>${d.day}</td>
+            <td class="muted">${d.count}</td>
+            <td><strong>${Math.round(d.bestNet)}</strong></td>
+            <td class="muted">${d.avgNet.toFixed(1)}</td>
+            <td><strong>${d.bestAcc.toFixed(2)}%</strong></td>
+            <td class="muted">${d.avgAcc.toFixed(2)}%</td>
+          </tr>
+        `);
+      }
+      historyTable.innerHTML = rows.join("");
+
+      // Mini summary (today + last 7 days)
+      const todayKey = localDayKey(Date.now());
+      const todaySessions = byDay.get(todayKey) || [];
+      const todayBest = todaySessions.length ? Math.max(...todaySessions.map(s => Number(s.netWpm||0))) : 0;
+
+      const last7 = daily.slice(0, 7);
+      const last7Avg = last7.length ? avg(last7.map(d => d.avgNet)) : 0;
+
+      const totalTests = hist.length;
+      const bestNetOverall = Math.max(...hist.map(s => Number(s.netWpm || 0)));
+
+      historyMini.innerHTML =
+        `Today best net: <strong>${Math.round(todayBest)}</strong> • ` +
+        `7-day avg net: <strong>${last7Avg.toFixed(1)}</strong> • ` +
+        `Best net (all saved): <strong>${Math.round(bestNetOverall)}</strong> • ` +
+        `Tests saved: <strong>${totalTests}</strong>`;
+
+      // Spark bars (best net per day)
+      const maxNet = Math.max(...daily.map(d => d.bestNet), 1);
+      spark.innerHTML = "";
+      // show up to 20 bars (already max 20 days)
+      daily.slice().reverse().forEach((d) => {
+        const h = Math.max(6, Math.round((d.bestNet / maxNet) * 56));
+        const div = document.createElement("div");
+        div.className = "bar" + (d.day === todayKey ? " best" : "");
+        div.style.height = `${h}px`;
+        div.title = `${d.day} • best net ${Math.round(d.bestNet)} • tests ${d.count}`;
+        spark.appendChild(div);
+      });
+    }
+
+    function exportCSV(){
+      const hist = pruneHistory(loadHistory());
+      if (!hist.length){
+        showToast("No history to export.");
+        return;
+      }
+      const header = [
+        "timestamp",
+        "date",
+        "grossWpm",
+        "netWpm",
+        "accuracy",
+        "totalChars",
+        "totalErrors",
+        "allowableErrors",
+        "finalMistakes"
+      ];
+      const lines = [header.join(",")];
+
+      for (const s of hist.slice().reverse()){
+        const ts = s.ts;
+        const date = localDayKey(ts);
+        const row = [
+          new Date(ts).toISOString(),
+          date,
+          s.grossWpm ?? "",
+          s.netWpm ?? "",
+          s.acc ?? "",
+          s.totalChars ?? "",
+          s.totalErrors ?? "",
+          s.allowableErrors ?? "",
+          s.finalMistakes ?? ""
+        ];
+        lines.push(row.join(","));
+      }
+
+      const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `indraveer-typing-history-${localDayKey(Date.now())}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearHistory(){
+      try{
+        localStorage.removeItem(STORAGE_KEY);
+      }catch{}
+      renderHistory();
+      showToast("History cleared.");
+    }
+
+    // Buttons
     btnStart.addEventListener("click", startTest);
     btnReset.addEventListener("click", hardReset);
     btnNew.addEventListener("click", newText);
     btnClose.addEventListener("click", closeResults);
+    btnExport.addEventListener("click", exportCSV);
+    btnClearHistory.addEventListener("click", clearHistory);
 
+    // Modal close by clicking outside
     modal.addEventListener("click", (e) => { if (e.target === modal) closeResults(); });
 
+    // Input listeners
     typebox.addEventListener("input", onTypeInput);
     typebox.addEventListener("keydown", onKeyDown);
     typebox.addEventListener("paste", onPaste);
@@ -892,6 +1273,7 @@
     buildKeyboard();
     renderTarget(generateTarget());
     hardReset();
+    renderHistory();
   </script>
 </body>
 </html>
