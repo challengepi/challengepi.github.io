@@ -37,10 +37,7 @@
     }
 
     .app{ max-width: 1220px; margin: 0 auto; padding: 26px 16px 44px; }
-    header{
-      display:flex; align-items:center; justify-content:space-between; gap: 14px;
-      margin-bottom: 14px;
-    }
+    header{ display:flex; align-items:center; justify-content:space-between; gap: 14px; margin-bottom: 14px; flex-wrap:wrap; }
 
     .brand{ display:flex; align-items:center; gap: 12px; user-select:none; }
     .logo{
@@ -263,26 +260,6 @@
     tbody td.muted{ color: var(--muted2); }
     .scroll{ max-height: 240px; overflow:auto; }
 
-    .spark{
-      display:flex; align-items:flex-end; gap: 6px; height: 60px;
-      padding: 10px 10px 12px;
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 16px;
-      background: rgba(0,0,0,.12);
-      margin-bottom: 10px;
-      overflow:hidden;
-    }
-    .bar{
-      width: 10px; border-radius: 999px;
-      background: rgba(0, 212, 255, .35);
-      outline: 1px solid rgba(255,255,255,.08);
-      flex: 0 0 auto;
-    }
-    .bar.best{
-      background: rgba(61, 220, 151, .38);
-      outline-color: rgba(61, 220, 151, .22);
-    }
-
     .modal{ position: fixed; inset: 0; display:none; place-items:center; background: rgba(0,0,0,.55); z-index: 1000; padding: 18px; }
     .modal.show{ display:grid; }
     .modal-card{
@@ -325,7 +302,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Indraveer Typing Practice</h1>
-          <p class="subtitle">Railway / SSC-style CBTST simulation • full/half mistakes • 5% allowable • retype passage</p>
+          <p class="subtitle">Railway / SSC-style CBTST simulation • 1 min warm-up + 30 sec break + 10 min test • no backspace • retype passage</p>
         </div>
       </div>
       <div class="header-actions">
@@ -338,26 +315,23 @@
     </header>
 
     <main>
-      <!-- Left: Rules + scoring -->
       <section class="card">
-        <div class="card-h">
-          <p class="title">Railway / SSC rules & scoring</p>
-        </div>
+        <div class="card-h"><p class="title">Railway / SSC rules & scoring</p></div>
         <div class="card-b">
           <div class="rule"><span class="dot good"></span><span><strong>Stages:</strong> warm-up 1 minute, break 30 seconds, typing test 10 minutes.</span></div>
-          <div class="rule"><span class="dot good"></span><span><strong>Retype:</strong> after finishing the passage, you can type the same passage again within 10 minutes (app repeats it automatically).</span></div>
-          <div class="rule"><span class="dot warn"></span><span><strong>Minimum words:</strong> if total words typed in English is <strong>below 300</strong>, result is marked “not evaluated”.</span></div>
-          <div class="rule"><span class="dot bad"></span><span><strong>Disqualify warning:</strong> if you do not complete the passage at least once in 10 minutes, result is marked “disqualified”.</span></div>
+          <div class="rule"><span class="dot good"></span><span><strong>Retype:</strong> after finishing the passage, type it again from the beginning (app loops automatically).</span></div>
+          <div class="rule"><span class="dot warn"></span><span><strong>Minimum words:</strong> if total words typed is <strong>&lt; 300</strong>, result is “not evaluated”.</span></div>
+          <div class="rule"><span class="dot bad"></span><span><strong>Disqualify:</strong> if you do not complete the passage at least once, result is “disqualified”.</span></div>
 
           <div style="margin-top:12px; color:rgba(255,255,255,.86); font-weight:850; letter-spacing:.2px;">Mistake calculation</div>
-          <div class="rule"><span class="dot"></span><span><strong>Total mistakes</strong> = Full mistakes + (Half mistakes ÷ 2)</span></div>
+          <div class="rule"><span class="dot"></span><span><strong>Total mistakes</strong> = Full + (Half ÷ 2)</span></div>
           <div class="rule"><span class="dot"></span><span><strong>Allowable errors</strong> = 5% of total words typed</span></div>
-          <div class="rule"><span class="dot"></span><span><strong>Final count of mistakes</strong> = max(0, Total mistakes − Allowable errors)</span></div>
-          <div class="rule"><span class="dot"></span><span><strong>Net speed (WPM)</strong> = (Total words typed − (Final mistakes × 10)) ÷ 10</span></div>
+          <div class="rule"><span class="dot"></span><span><strong>Final mistakes</strong> = max(0, Total − Allowable)</span></div>
+          <div class="rule"><span class="dot"></span><span><strong>Net WPM</strong> = (TotalWords − (FinalMistakes × 10)) ÷ 10</span></div>
 
           <div style="margin-top:10px; color:var(--muted2); font-size:12.5px; line-height:1.35;">
-            In this app: <strong>half mistake</strong> means the typed word differs by only <strong>one character</strong> (or only case),
-            otherwise it is a <strong>full mistake</strong>. The app uses word-alignment so one early mistake doesn’t wrongly ruin the whole line.
+            <strong>Exam word standard:</strong> This app uses <strong>totalCharacters ÷ 5</strong> as “Total Words typed” (same style as many typing platforms).
+            It also shows a “raw word count” just for reference.
           </div>
 
           <div style="margin-top:14px; color:var(--muted); font-size:13px;">Characters used in the passage:</div>
@@ -365,12 +339,11 @@
         </div>
       </section>
 
-      <!-- Center: Target + typing -->
       <section class="card">
         <div class="card-h">
           <p class="title">Passage</p>
           <div style="display:flex; gap:10px; align-items:center; color:var(--muted); font-size:12.5px;">
-            <span id="lenInfo">Words: —</span>
+            <span id="lenInfo">Length: —</span>
           </div>
         </div>
         <div class="card-b" style="display:flex; flex-direction:column; gap:12px;">
@@ -387,11 +360,8 @@
         </div>
       </section>
 
-      <!-- Right: Stats + history -->
       <section class="card">
-        <div class="card-h">
-          <p class="title">Stats & history</p>
-        </div>
+        <div class="card-h"><p class="title">Stats & history</p></div>
         <div class="card-b">
           <div class="statgrid">
             <div class="stat big">
@@ -405,15 +375,27 @@
             </div>
 
             <div class="stat">
-              <p class="k">Total words typed</p>
+              <p class="k">Exam words typed</p>
               <p id="wordsTyped" class="v">0</p>
-              <div class="sub">based on typed text</div>
+              <div class="sub">= characters ÷ 5</div>
+            </div>
+
+            <div class="stat">
+              <p class="k">Raw words (reference)</p>
+              <p id="rawWords" class="v">0</p>
+              <div class="sub">split by spaces</div>
             </div>
 
             <div class="stat">
               <p class="k">Passage completed</p>
               <p id="passageDone" class="v">0</p>
               <div class="sub">times completed in test</div>
+            </div>
+
+            <div class="stat">
+              <p class="k">Live WPM</p>
+              <p id="liveWpm" class="v">0</p>
+              <div class="sub">based on elapsed time</div>
             </div>
 
             <div class="stat">
@@ -441,9 +423,9 @@
             </div>
 
             <div class="stat">
-              <p class="k">Gross speed</p>
+              <p class="k">Exam gross (10 min)</p>
               <p id="grossWpm" class="v">0</p>
-              <div class="sub">total words ÷ 10</div>
+              <div class="sub">totalWords ÷ 10</div>
             </div>
 
             <div class="stat">
@@ -455,13 +437,13 @@
             <div class="stat">
               <p class="k">Character accuracy</p>
               <p id="acc" class="v">100%</p>
-              <div class="sub">for practice feedback</div>
+              <div class="sub">practice feedback</div>
             </div>
 
             <div class="stat">
               <p class="k">Word bank loaded</p>
               <p id="bankInfo" class="v">—</p>
-              <div class="sub">from words.html / words.js</div>
+              <div class="sub">from words.js</div>
             </div>
           </div>
 
@@ -479,9 +461,7 @@
               </div>
             </div>
 
-            <div id="spark" class="spark" aria-label="Daily best net speed chart"></div>
-
-            <div class="tablewrap">
+            <div class="tablewrap" style="margin-top:10px;">
               <div class="scroll">
                 <table>
                   <thead>
@@ -520,16 +500,18 @@
       <div class="modal-b">
         <div id="resultGrid" class="resultgrid"></div>
         <div class="note">
-          Net WPM formula: <code class="k">(TotalWords − (FinalMistakes × 10)) ÷ 10</code>.
-          Final mistakes are <code class="k">max(0, TotalMistakes − 0.05×TotalWords)</code>.
+          Net WPM formula:
+          <code class="k">(TotalWords − (FinalMistakes × 10)) ÷ 10</code>.
+          Final mistakes are
+          <code class="k">max(0, TotalMistakes − 0.05×TotalWords)</code>.
+          Here TotalWords = <code class="k">totalCharacters ÷ 5</code>.
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Word bank: user asked for words.html; words.js is also supported if present -->
+  <!-- ONLY words.js -->
   <script src="words.js"></script>
-  <script src="words.html"></script>
 
   <script>
     // -------------------------
@@ -548,15 +530,18 @@
     const BREAK_SEC  = 30;
     const TEST_SEC   = 10 * 60;
 
-    const MIN_WORDS_EN = 300;  // "not evaluated" threshold
+    const MIN_WORDS_EN = 300;
     const KEEP_DAYS = 20;
     const MAX_SESSIONS = 200;
-    const STORAGE_KEY = "indraveer_cbtst_history_v2";
+    const STORAGE_KEY = "indraveer_cbtst_history_v3";
 
-    // Typical English punctuation set
+    // Exam standard: 1 word = 5 characters
+    const WORD_UNIT = 5;
+
+    // Typical English punctuation set (no digits)
     const PUNCT = [".", ",", ";", ":", "!", "?", "\"", "'", "-", "(", ")"];
 
-    // Word bank from words file(s)
+    // Word bank
     const WORD_BANK = (Array.isArray(window.WORDS) && window.WORDS.length >= 1000)
       ? window.WORDS
       : ["the","and","to","of","in","a","is","that","for","it","practice","typing","speed","accuracy","exam","railway","candidate","result","mistake","final"];
@@ -586,7 +571,9 @@
 
     const statePill = $("statePill");
     const wordsTypedEl = $("wordsTyped");
+    const rawWordsEl = $("rawWords");
     const passageDoneEl = $("passageDone");
+    const liveWpmEl = $("liveWpm");
     const fullMistEl = $("fullMist");
     const halfMistEl = $("halfMist");
     const allowErrEl = $("allowErr");
@@ -598,14 +585,13 @@
 
     const historyMini = $("historyMini");
     const historyTable = $("historyTable");
-    const spark = $("spark");
 
-    // Target render
-    let targetText = "";
-    let targetSpans = [];
+    // Passage render
     let basePassageText = "";
+    let basePassageChars = 0;
     let basePassageWords = [];
-    let repeatsRendered = 1; // number of passages currently appended in targetText
+
+    let targetSpans = [];
 
     // Typing state
     let stage = STAGE_IDLE;
@@ -617,8 +603,8 @@
     let correctChars = 0;
     let wrongChars = 0;
 
-    // Test-only metrics (computed at end using word alignment DP)
-    let lastComputed = null;
+    // passage completion count (precise by character wrap)
+    let passageCompleted = 0;
 
     function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
     function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
@@ -665,7 +651,6 @@
     }
 
     function tokenizeWords(text){
-      // "words" = sequences of non-whitespace
       const m = text.match(/\S+/g);
       return m ? m : [];
     }
@@ -674,136 +659,116 @@
       return WORD_BANK[randInt(0, WORD_BANK.length-1)];
     }
 
-    function generateMeaningfulPassage(targetWords = 340){
-      // Creates exam-style English paragraphs using the word bank.
-      // (One passage is fixed during the test and repeated on completion.)
-      const connectors = ["however", "therefore", "because", "although", "while", "when", "where", "unless", "since", "after", "before"];
-      const starters = ["Candidates", "The system", "This passage", "A student", "A worker", "The committee", "The officer", "The report", "A decision", "The process"];
+    function generateMeaningfulPassage(targetWords = 350){
+      const connectors = ["however","therefore","because","although","while","when","where","unless","since","after","before"];
+      const starters = ["Candidates","The system","This passage","A student","A worker","The committee","The officer","The report","A decision","The process"];
 
-      const words = [];
-      while (words.length < targetWords){
+      const parts = [];
+      let madeWords = 0;
+
+      while (madeWords < targetWords){
         const sentenceLen = randInt(14, 22);
         const first = starters[randInt(0, starters.length-1)];
         const sentence = [first];
 
-        for (let i=1;i<sentenceLen;i++){
+        for (let i=1;i<sentenceLen && madeWords < targetWords;i++){
           let w = randomWord();
           if (Math.random() < 0.10) w = connectors[randInt(0, connectors.length-1)];
           sentence.push(w);
+          madeWords++;
         }
 
-        // Capitalize proper sentence start
         sentence[0] = sentence[0][0].toUpperCase() + sentence[0].slice(1);
 
-        // Insert mid punctuation
-        if (Math.random() < 0.65){
+        if (Math.random() < 0.65 && sentence.length >= 8){
           const k = randInt(3, sentence.length-4);
           const mid = [",",";",":"][randInt(0,2)];
           sentence[k] = sentence[k] + mid;
         }
 
-        // End punctuation (mostly period)
         const r = Math.random();
         const end = r < 0.12 ? "?" : (r < 0.18 ? "!" : ".");
         let line = sentence.join(" ") + end;
 
-        // Occasional quotes or parentheses
         if (Math.random() < 0.10) line = `"${line}"`;
         if (Math.random() < 0.08) line = `(${line})`;
 
-        // Add to passage
-        words.push(line);
-
-        // Paragraph breaks
-        if (Math.random() < 0.18) words.push("\n\n");
-        else words.push(" ");
+        parts.push(line);
+        parts.push(Math.random() < 0.18 ? "\n\n" : " ");
       }
 
-      // Join, then trim whitespace nicely
-      const raw = words.join("").replace(/\s+\n/g, "\n").replace(/\n\s+/g, "\n").trim();
-      return raw;
+      return parts.join("").replace(/\s+\n/g, "\n").replace(/\n\s+/g, "\n").trim();
     }
 
-    function renderTarget(text){
-      targetText = text;
+    function renderPassage(text){
+      basePassageText = text;
+      basePassageChars = basePassageText.length;
+      basePassageWords = tokenizeWords(basePassageText);
+
+      // render once only (looping is done via modulo)
+      targetEl.innerHTML = "";
       targetSpans = [];
-      repeatsRendered = 1;
 
       const frag = document.createDocumentFragment();
-      for (let i=0;i<targetText.length;i++){
+      for (let i=0;i<basePassageText.length;i++){
         const s = document.createElement("span");
         s.className = "c";
-        s.textContent = targetText[i];
+        s.textContent = basePassageText[i];
         frag.appendChild(s);
         targetSpans.push(s);
       }
-      targetEl.innerHTML = "";
       targetEl.appendChild(frag);
 
-      const baseWordsCount = basePassageWords.length || tokenizeWords(basePassageText).length || 0;
-      lenInfo.textContent = `Words: ${baseWordsCount.toLocaleString()} (passage)`;
-      updateCursor(0);
+      lenInfo.textContent = `Length: ${basePassageChars.toLocaleString()} chars • (~${(basePassageChars/WORD_UNIT).toFixed(0)} exam-words)`;
+      setCursor(0);
       targetEl.scrollTop = 0;
     }
 
-    function appendRetypeBlockIfNeeded(pos){
-      // If user approaches end of currently rendered target, append another copy of base passage.
-      // This simulates "retype the passage from beginning" inside time.
-      const margin = 220; // chars
-      if (pos < targetText.length - margin) return;
-
-      const extra = "\n\n" + basePassageText;
-      const frag = document.createDocumentFragment();
-      for (let i=0;i<extra.length;i++){
-        const s = document.createElement("span");
-        s.className = "c";
-        s.textContent = extra[i];
-        frag.appendChild(s);
-        targetSpans.push(s);
-      }
-      targetText += extra;
-      targetEl.appendChild(frag);
-      repeatsRendered += 1;
-
-      showToast(`Passage completed — retype from beginning (repeat ${repeatsRendered}).`);
+    function clearMarking(){
+      for (const s of targetSpans) s.classList.remove("correct","incorrect","cursor");
+      setCursor(0);
+      targetEl.scrollTop = 0;
     }
 
-    function updateCursor(pos){
-      const old = targetEl.querySelector(".cursor");
-      if (old) old.classList.remove("cursor");
-      if (pos >= 0 && pos < targetSpans.length) targetSpans[pos].classList.add("cursor");
+    function setCursor(loopPos){
+      for (const s of targetSpans) s.classList.remove("cursor");
+      if (loopPos >= 0 && loopPos < targetSpans.length) targetSpans[loopPos].classList.add("cursor");
     }
 
-    function scrollCursorIntoView(pos){
-      const span = targetSpans[pos];
+    function scrollCursorIntoView(loopPos){
+      const span = targetSpans[loopPos];
       if (!span) return;
-      const container = targetEl;
       const top = span.offsetTop;
       const bottom = top + span.offsetHeight;
-      const viewTop = container.scrollTop;
-      const viewBottom = viewTop + container.clientHeight;
+      const viewTop = targetEl.scrollTop;
+      const viewBottom = viewTop + targetEl.clientHeight;
 
-      if (top < viewTop + 18) container.scrollTop = Math.max(0, top - 24);
-      else if (bottom > viewBottom - 18) container.scrollTop = bottom - container.clientHeight + 24;
-    }
-
-    function clearMarking(){
-      for (const s of targetSpans){
-        s.classList.remove("correct","incorrect");
-      }
-      updateCursor(0);
+      if (top < viewTop + 18) targetEl.scrollTop = Math.max(0, top - 24);
+      else if (bottom > viewBottom - 18) targetEl.scrollTop = bottom - targetEl.clientHeight + 24;
     }
 
     function resetCounters(){
       typed = "";
       correctChars = 0;
       wrongChars = 0;
+      passageCompleted = 0;
+
       typebox.value = "";
       liveWarn.textContent = "";
-      lastComputed = null;
-      updateStatsUI({reset:true});
+
+      wordsTypedEl.textContent = "0";
+      rawWordsEl.textContent = "0";
+      passageDoneEl.textContent = "0";
+      liveWpmEl.textContent = "0";
+      fullMistEl.textContent = "0";
+      halfMistEl.textContent = "0";
+      allowErrEl.textContent = "0";
+      finalMistEl.textContent = "0";
+      grossWpmEl.textContent = "0";
+      netWpmEl.textContent = "0";
+      accEl.textContent = "100%";
+
       clearMarking();
-      targetEl.scrollTop = 0;
       forceCaretToEnd();
     }
 
@@ -811,299 +776,140 @@
     function isHalfMistakeWord(a, b){
       if (a === b) return false;
       if (!a || !b) return false;
-
-      // case-only difference -> half mistake
       if (a.toLowerCase() === b.toLowerCase()) return true;
 
       const la = a.length, lb = b.length;
       if (Math.abs(la - lb) > 1) return false;
 
-      // Equal length: allow 1 substitution
       if (la === lb){
         let diff = 0;
         for (let i=0;i<la;i++){
-          if (a[i] !== b[i]){
-            diff++;
-            if (diff > 1) return false;
-          }
+          if (a[i] !== b[i]) { diff++; if (diff > 1) return false; }
         }
         return diff === 1;
       }
 
-      // Length differs by 1: allow 1 insertion/deletion
       const shorter = la < lb ? a : b;
       const longer  = la < lb ? b : a;
       let i = 0, j = 0, edits = 0;
       while (i < shorter.length && j < longer.length){
-        if (shorter[i] === longer[j]){
-          i++; j++;
-        } else {
-          edits++;
-          if (edits > 1) return false;
-          j++; // skip one char in longer
-        }
+        if (shorter[i] === longer[j]) { i++; j++; }
+        else { edits++; if (edits > 1) return false; j++; }
       }
-      // remaining extra char in longer counts as 1 edit max
       return true;
     }
 
-    // --- DP alignment to compute full/half mistakes robustly ---
+    // --- DP alignment to compute full/half mistakes ---
     function computeMistakesWordAlignment(typedWords, expectedWords){
       const n = typedWords.length;
       const m = expectedWords.length;
 
-      // dp rows (float costs), dir matrix (uint8) for backtracking
-      // dir codes: 1=INS, 2=DEL, 3=MATCH, 4=HALF, 5=FULLSUB
       const dir = new Uint8Array((n+1)*(m+1));
       const prev = new Float32Array(m+1);
       const curr = new Float32Array(m+1);
 
-      // init dp[0][j] = j (deleting expected words)
       prev[0] = 0;
-      for (let j=1;j<=m;j++){
-        prev[j] = prev[j-1] + 1;
-        dir[0*(m+1)+j] = 2; // DEL
-      }
+      for (let j=1;j<=m;j++){ prev[j] = prev[j-1] + 1; dir[0*(m+1)+j] = 2; }
 
       for (let i=1;i<=n;i++){
         curr[0] = prev[0] + 1;
-        dir[i*(m+1)+0] = 1; // INS
+        dir[i*(m+1)+0] = 1;
 
         const tw = typedWords[i-1];
         for (let j=1;j<=m;j++){
           const ew = expectedWords[j-1];
 
           let subCost = 0;
-          let subDir = 3; // MATCH
-          if (tw === ew){
-            subCost = 0; subDir = 3;
-          } else if (isHalfMistakeWord(tw, ew)){
-            subCost = 0.5; subDir = 4;
-          } else {
-            subCost = 1; subDir = 5;
-          }
+          let subDir = 3; // match
+          if (tw === ew){ subCost = 0; subDir = 3; }
+          else if (isHalfMistakeWord(tw, ew)){ subCost = 0.5; subDir = 4; }
+          else { subCost = 1; subDir = 5; }
 
-          const costIns = prev[j] + 1;         // dp[i-1][j] + 1
-          const costDel = curr[j-1] + 1;       // dp[i][j-1] + 1
-          const costSub = prev[j-1] + subCost; // dp[i-1][j-1] + sub
+          const costIns = prev[j] + 1;
+          const costDel = curr[j-1] + 1;
+          const costSub = prev[j-1] + subCost;
 
-          // choose minimal (tie-break: prefer SUB, then DEL, then INS)
           let best = costSub;
           let bestDir = subDir;
 
-          if (costDel < best - 1e-6 || (Math.abs(costDel-best) <= 1e-6 && bestDir !== 3 && bestDir !== 4 && bestDir !== 5)){
-            best = costDel;
-            bestDir = 2;
-          }
-          if (costIns < best - 1e-6){
-            best = costIns;
-            bestDir = 1;
-          }
+          if (costDel < best - 1e-6){ best = costDel; bestDir = 2; }
+          if (costIns < best - 1e-6){ best = costIns; bestDir = 1; }
 
           curr[j] = best;
           dir[i*(m+1)+j] = bestDir;
         }
-
-        // swap
         prev.set(curr);
       }
 
-      // Choose best end j (no penalty for not typing remaining expected words)
-      let bestJ = 0;
-      let bestCost = prev[0];
-      for (let j=1;j<=m;j++){
-        if (prev[j] < bestCost){
-          bestCost = prev[j];
-          bestJ = j;
-        }
-      }
+      // Best end j (no penalty for leaving expected remainder)
+      let bestJ = 0, bestCost = prev[0];
+      for (let j=1;j<=m;j++){ if (prev[j] < bestCost){ bestCost = prev[j]; bestJ = j; } }
 
-      // Backtrack from (n, bestJ)
       let i = n, j = bestJ;
       let full = 0, half = 0;
       while (i > 0 || j > 0){
-        if (i === 0){
-          // deletions
-          full += j;
-          break;
-        }
-        if (j === 0){
-          // insertions
-          full += i;
-          break;
-        }
+        if (i === 0){ full += j; break; }
+        if (j === 0){ full += i; break; }
 
         const code = dir[i*(m+1)+j];
-        if (code === 1){
-          // INS
-          full++;
-          i--;
-        } else if (code === 2){
-          // DEL
-          full++;
-          j--;
-        } else if (code === 3){
-          // MATCH
-          i--; j--;
-        } else if (code === 4){
-          // HALF
-          half++;
-          i--; j--;
-        } else if (code === 5){
-          // FULL SUB
-          full++;
-          i--; j--;
-        } else {
-          // fallback
-          i--; j--;
-        }
+        if (code === 1){ full++; i--; }
+        else if (code === 2){ full++; j--; }
+        else if (code === 3){ i--; j--; }
+        else if (code === 4){ half++; i--; j--; }
+        else if (code === 5){ full++; i--; j--; }
+        else { i--; j--; }
       }
-
-      return { fullMistakes: full, halfMistakes: half, alignedExpectedUsed: bestJ, totalCost: bestCost };
+      return { fullMistakes: full, halfMistakes: half };
     }
 
     function computeFinalTestMetrics(){
-      const typedWords = tokenizeWords(typed);
+      // exam words = characters/5
+      const totalChars = typed.length;
+      const totalWords = totalChars / WORD_UNIT;
 
-      // Expand expected words (repeat base passage) to cover typed length safely
+      // expected repeated words for alignment (for mistakes)
+      const typedWords = tokenizeWords(typed);
       const baseLen = basePassageWords.length || 1;
       const needRepeats = Math.max(1, Math.ceil((typedWords.length + baseLen) / baseLen));
       const expectedWords = [];
-      for (let r=0;r<needRepeats;r++){
-        expectedWords.push(...basePassageWords);
-      }
+      for (let r=0;r<needRepeats;r++) expectedWords.push(...basePassageWords);
 
       const align = computeMistakesWordAlignment(typedWords, expectedWords);
-
-      const totalWords = typedWords.length;
       const totalMistakes = align.fullMistakes + (align.halfMistakes / 2);
       const allowable = totalWords * 0.05;
       const finalMist = Math.max(0, totalMistakes - allowable);
 
-      const grossWpm = totalWords / 10;
+      const grossWpmExam = totalWords / 10;
       const netWpm = Math.max(0, (totalWords - (finalMist * 10)) / 10);
 
-      const charAcc = (typed.length > 0) ? (correctChars / typed.length) * 100 : 100;
-
-      // Passage completion check: if we consumed >= baseLen expected words in alignment
-      const passagesCompleted = Math.floor(align.alignedExpectedUsed / baseLen);
+      const charAcc = totalChars ? (correctChars / totalChars) * 100 : 100;
 
       let status = "Evaluated";
       if (totalWords < MIN_WORDS_EN) status = "Not evaluated (<300 words)";
-      if (passagesCompleted < 1) status = "Disqualified (passage not completed)";
+      if (passageCompleted < 1) status = "Disqualified (passage not completed)";
 
       return {
         status,
+        totalChars,
         totalWords,
-        passagesCompleted,
+        rawWords: tokenizeWords(typed).length,
+        passagesCompleted: passageCompleted,
         fullMistakes: align.fullMistakes,
         halfMistakes: align.halfMistakes,
         totalMistakes,
         allowable,
         finalMist,
-        grossWpm,
+        grossWpmExam,
         netWpm,
         charAcc
       };
     }
 
-    function updateStatsUI(opts = {}){
-      if (opts.reset){
-        wordsTypedEl.textContent = "0";
-        passageDoneEl.textContent = "0";
-        fullMistEl.textContent = "0";
-        halfMistEl.textContent = "0";
-        allowErrEl.textContent = "0";
-        finalMistEl.textContent = "0";
-        grossWpmEl.textContent = "0";
-        netWpmEl.textContent = "0";
-        accEl.textContent = "100%";
-        return;
-      }
-
-      // Lightweight live values
-      const wordsNow = tokenizeWords(typed).length;
-      wordsTypedEl.textContent = String(wordsNow);
-
-      const acc = typed.length ? (correctChars / typed.length) * 100 : 100;
-      accEl.textContent = `${acc.toFixed(2)}%`;
-
-      // For live, compute full metrics only occasionally (to keep smooth)
-      // We'll compute at most every ~700ms via tick()
-    }
-
-    function setTimerUI(secLeft){
-      timerEl.textContent = formatTime(secLeft);
-    }
-
-    function setProgressUI(secLeft){
-      if (stage === STAGE_WARMUP){
-        const elapsed = Math.min(WARMUP_SEC, Math.max(0, stageDurationSec - secLeft));
-        progEl.style.width = `${(elapsed / WARMUP_SEC) * 100}%`;
-      } else if (stage === STAGE_BREAK){
-        const elapsed = Math.min(BREAK_SEC, Math.max(0, stageDurationSec - secLeft));
-        progEl.style.width = `${(elapsed / BREAK_SEC) * 100}%`;
-      } else if (stage === STAGE_TEST){
-        const elapsed = Math.min(TEST_SEC, Math.max(0, stageDurationSec - secLeft));
-        progEl.style.width = `${(elapsed / TEST_SEC) * 100}%`;
-      } else {
-        progEl.style.width = "0%";
-      }
-    }
-
-    function tick(){
-      const now = performance.now();
-      const elapsed = (now - stageStartPerf) / 1000;
-      const left = Math.max(0, stageDurationSec - elapsed);
-
-      setTimerUI(left);
-      setProgressUI(left);
-
-      // Update live metrics during warmup/test
-      if (stage === STAGE_WARMUP){
-        stageHint.textContent = "Warm-up: practice typing (not evaluated).";
-        setState("Warm-up");
-      } else if (stage === STAGE_BREAK){
-        stageHint.textContent = "Break: relax your hands (typing disabled).";
-        setState("Break");
-      } else if (stage === STAGE_TEST){
-        stageHint.textContent = "Test: 10 minutes (evaluated). Type continuously. No backspace.";
-        setState("Running");
-
-        // compute full metrics occasionally (cheap enough)
-        if (!tick._last || (now - tick._last) > 700){
-          tick._last = now;
-          const m = computeFinalTestMetrics();
-          passageDoneEl.textContent = String(m.passagesCompleted);
-          fullMistEl.textContent = String(m.fullMistakes);
-          halfMistEl.textContent = String(m.halfMistakes);
-          allowErrEl.textContent = m.allowable.toFixed(2);
-          finalMistEl.textContent = m.finalMist.toFixed(2);
-          grossWpmEl.textContent = Math.floor(m.grossWpm + 1e-9).toString();
-          netWpmEl.textContent = Math.floor(m.netWpm + 1e-9).toString();
-          updateStatsUI();
-        }
-      }
-
-      if (left <= 0.001){
-        if (stage === STAGE_WARMUP){
-          startStageBreak();
-          return;
-        } else if (stage === STAGE_BREAK){
-          startStageTest(true);
-          return;
-        } else if (stage === STAGE_TEST){
-          finishTest();
-          return;
-        }
-      }
-
-      rafId = requestAnimationFrame(tick);
-    }
-
-    function stopTicker(){
-      cancelAnimationFrame(rafId);
-      rafId = 0;
+    function setTimerUI(secLeft){ timerEl.textContent = formatTime(secLeft); }
+    function setProgressUI(left){
+      const total = stage === STAGE_WARMUP ? WARMUP_SEC : stage === STAGE_BREAK ? BREAK_SEC : stage === STAGE_TEST ? TEST_SEC : 1;
+      const elapsed = Math.max(0, stageDurationSec - left);
+      progEl.style.width = `${clamp((elapsed/total)*100, 0, 100)}%`;
     }
 
     function startStageWarmup(){
@@ -1112,11 +918,7 @@
       stageDurationSec = WARMUP_SEC;
       stageStartPerf = performance.now();
 
-      // warmup passage: short + simple
-      basePassageText = generateMeaningfulPassage(180);
-      basePassageWords = tokenizeWords(basePassageText);
-
-      renderTarget(basePassageText);
+      renderPassage(generateMeaningfulPassage(180));
       resetCounters();
 
       typebox.disabled = false;
@@ -1147,18 +949,10 @@
       stageDurationSec = TEST_SEC;
       stageStartPerf = performance.now();
 
-      // test passage: around 340+ words
-      basePassageText = generateMeaningfulPassage(350);
-      basePassageWords = tokenizeWords(basePassageText);
-
-      // Render only one passage; repeats get appended automatically on completion
-      renderTarget(basePassageText);
-
-      // reset counters for evaluated test
+      renderPassage(generateMeaningfulPassage(350));
       resetCounters();
 
       typebox.disabled = false;
-
       btnReset.disabled = false;
       btnCBTST.disabled = true;
       btnTestOnly.disabled = true;
@@ -1169,6 +963,89 @@
       rafId = requestAnimationFrame(tick);
     }
 
+    function tick(){
+      const now = performance.now();
+      const elapsed = (now - stageStartPerf) / 1000;
+      const left = Math.max(0, stageDurationSec - elapsed);
+
+      setTimerUI(left);
+      setProgressUI(left);
+
+      if (stage === STAGE_WARMUP){
+        stageHint.textContent = "Warm-up: practice typing (not evaluated).";
+        setState("Warm-up");
+      } else if (stage === STAGE_BREAK){
+        stageHint.textContent = "Break: relax your hands (typing disabled).";
+        setState("Break");
+      } else if (stage === STAGE_TEST){
+        stageHint.textContent = "Test: 10 minutes (evaluated). Type continuously. No backspace.";
+        setState("Running");
+
+        const mins = Math.max(1/60, elapsed / 60);
+        const totalWords = (typed.length / WORD_UNIT);
+        const liveWpm = totalWords / mins;
+
+        wordsTypedEl.textContent = totalWords.toFixed(2);
+        rawWordsEl.textContent = String(tokenizeWords(typed).length);
+        passageDoneEl.textContent = String(passageCompleted);
+        liveWpmEl.textContent = liveWpm.toFixed(1);
+
+        const acc = typed.length ? (correctChars / typed.length) * 100 : 100;
+        accEl.textContent = `${acc.toFixed(2)}%`;
+
+        // compute full/half + net occasionally (heavy DP), not on every frame
+        if (!tick._lastHeavy || (now - tick._lastHeavy) > 2500){
+          tick._lastHeavy = now;
+          const m = computeFinalTestMetrics();
+          fullMistEl.textContent = String(m.fullMistakes);
+          halfMistEl.textContent = String(m.halfMistakes);
+          allowErrEl.textContent = m.allowable.toFixed(2);
+          finalMistEl.textContent = m.finalMist.toFixed(2);
+          grossWpmEl.textContent = m.grossWpmExam.toFixed(1);
+          netWpmEl.textContent = m.netWpm.toFixed(1);
+        }
+      }
+
+      if (left <= 0.001){
+        if (stage === STAGE_WARMUP){ startStageBreak(); return; }
+        if (stage === STAGE_BREAK){ startStageTest(true); return; }
+        if (stage === STAGE_TEST){ finishTest(); return; }
+      }
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function stopTicker(){ cancelAnimationFrame(rafId); rafId = 0; }
+
+    function openResults(m){
+      const lines = [
+        ["Status", m.status],
+        ["Total characters typed", String(m.totalChars)],
+        ["Total words (chars ÷ 5)", m.totalWords.toFixed(2)],
+        ["Raw words (reference)", String(m.rawWords)],
+        ["Passage completed", String(m.passagesCompleted)],
+        ["Full mistakes", String(m.fullMistakes)],
+        ["Half mistakes", String(m.halfMistakes)],
+        ["Total mistakes (full + half/2)", m.totalMistakes.toFixed(2)],
+        ["Allowable errors (5%)", m.allowable.toFixed(2)],
+        ["Final mistakes", m.finalMist.toFixed(2)],
+        ["Gross (10 min)", m.grossWpmExam.toFixed(2)],
+        ["Net WPM", m.netWpm.toFixed(2)],
+        ["Character accuracy", `${m.charAcc.toFixed(2)}%`]
+      ];
+
+      resultGrid.innerHTML = lines.map(([k,v]) =>
+        `<div class="resultline"><span>${k}</span><strong>${v}</strong></div>`
+      ).join("");
+
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden","false");
+    }
+
+    function closeResults(){
+      modal.classList.remove("show");
+      modal.setAttribute("aria-hidden","true");
+    }
+
     function finishTest(){
       stopTicker();
       stage = STAGE_DONE;
@@ -1176,31 +1053,33 @@
       typebox.disabled = true;
 
       const m = computeFinalTestMetrics();
-      lastComputed = m;
 
-      // Update right-side numbers with final
-      wordsTypedEl.textContent = String(m.totalWords);
+      // set final UI
+      wordsTypedEl.textContent = m.totalWords.toFixed(2);
+      rawWordsEl.textContent = String(m.rawWords);
       passageDoneEl.textContent = String(m.passagesCompleted);
       fullMistEl.textContent = String(m.fullMistakes);
       halfMistEl.textContent = String(m.halfMistakes);
       allowErrEl.textContent = m.allowable.toFixed(2);
       finalMistEl.textContent = m.finalMist.toFixed(2);
-      grossWpmEl.textContent = Math.floor(m.grossWpm + 1e-9).toString();
-      netWpmEl.textContent = Math.floor(m.netWpm + 1e-9).toString();
+      grossWpmEl.textContent = m.grossWpmExam.toFixed(1);
+      netWpmEl.textContent = m.netWpm.toFixed(1);
       accEl.textContent = `${m.charAcc.toFixed(2)}%`;
+      liveWpmEl.textContent = m.grossWpmExam.toFixed(1); // at 10 minutes, live avg = exam gross
 
       setTimerUI(0);
       setProgressUI(0);
 
       openResults(m);
 
-      // Save result
       saveSession({
         ts: Date.now(),
         status: m.status,
-        words: m.totalWords,
+        chars: m.totalChars,
+        words: Number(m.totalWords.toFixed(2)),
+        rawWords: m.rawWords,
+        gross: Number(m.grossWpmExam.toFixed(2)),
         net: Number(m.netWpm.toFixed(2)),
-        gross: Number(m.grossWpm.toFixed(2)),
         full: m.fullMistakes,
         half: m.halfMistakes,
         totalMist: Number(m.totalMistakes.toFixed(2)),
@@ -1220,34 +1099,6 @@
       showToast("Test finished. Result saved.");
     }
 
-    function openResults(m){
-      const lines = [
-        ["Status", m.status],
-        ["Total words typed", String(m.totalWords)],
-        ["Passage completed", String(m.passagesCompleted)],
-        ["Full mistakes", String(m.fullMistakes)],
-        ["Half mistakes", String(m.halfMistakes)],
-        ["Total mistakes (full + half/2)", m.totalMistakes.toFixed(2)],
-        ["Allowable errors (5%)", m.allowable.toFixed(2)],
-        ["Final count of mistakes", m.finalMist.toFixed(2)],
-        ["Gross speed (WPM)", Math.floor(m.grossWpm + 1e-9).toString()],
-        ["Net speed (WPM)", Math.floor(m.netWpm + 1e-9).toString()],
-        ["Character accuracy", `${m.charAcc.toFixed(2)}%`]
-      ];
-
-      resultGrid.innerHTML = lines.map(([k,v]) =>
-        `<div class="resultline"><span>${k}</span><strong>${v}</strong></div>`
-      ).join("");
-
-      modal.classList.add("show");
-      modal.setAttribute("aria-hidden","false");
-    }
-
-    function closeResults(){
-      modal.classList.remove("show");
-      modal.setAttribute("aria-hidden","true");
-    }
-
     function hardReset(){
       stopTicker();
       stage = STAGE_IDLE;
@@ -1260,15 +1111,11 @@
       btnTestOnly.disabled = false;
       btnNew.disabled = false;
 
-      // generate a preview passage
-      basePassageText = generateMeaningfulPassage(350);
-      basePassageWords = tokenizeWords(basePassageText);
-      renderTarget(basePassageText);
-
+      renderPassage(generateMeaningfulPassage(350));
       resetCounters();
+
       setTimerUI(0);
       progEl.style.width = "0%";
-
       showToast("Reset done.");
     }
 
@@ -1277,27 +1124,22 @@
         showToast("Reset first to change the passage.");
         return;
       }
-      basePassageText = generateMeaningfulPassage(350);
-      basePassageWords = tokenizeWords(basePassageText);
-      renderTarget(basePassageText);
+      renderPassage(generateMeaningfulPassage(350));
       resetCounters();
       showToast("New passage generated.");
     }
 
     // -------------------------
-    // Input restrictions
+    // Input restrictions + typing
     // -------------------------
     function onKeyDown(e){
-      // Always block backspace/delete (warmup + test)
       if (e.key === "Backspace" || e.key === "Delete"){
         e.preventDefault();
         showToast("Backspace/Delete is not allowed.");
         return;
       }
-
       if (stage !== STAGE_WARMUP && stage !== STAGE_TEST) return;
 
-      // Block cursor movement keys
       const blocked = ["ArrowLeft","ArrowUp","ArrowRight","ArrowDown","Home","End","PageUp","PageDown"];
       if (blocked.includes(e.key)){
         e.preventDefault();
@@ -1306,15 +1148,12 @@
         return;
       }
 
-      // Block copy/cut/paste/undo/redo/select all
       const ctrl = e.ctrlKey || e.metaKey;
       if (ctrl && ["a","x","v","z","y"].includes(e.key.toLowerCase())){
         e.preventDefault();
         showToast("Copy/Cut/Paste/Undo/Redo is disabled.");
         return;
       }
-
-      // Break stage: typing disabled anyway
     }
 
     function onPaste(e){
@@ -1323,7 +1162,6 @@
         showToast("Paste is disabled.");
       }
     }
-
     function onDrop(e){
       if (stage === STAGE_WARMUP || stage === STAGE_TEST){
         e.preventDefault();
@@ -1336,7 +1174,7 @@
 
       const val = typebox.value;
 
-      // No deletion allowed: if user somehow deleted, restore
+      // no deletion allowed
       if (val.length < typed.length){
         typebox.value = typed;
         forceCaretToEnd();
@@ -1347,34 +1185,46 @@
       forceCaretToEnd();
       const added = val.slice(typed.length);
       if (!added) return;
-
       liveWarn.textContent = "";
 
       for (let i=0;i<added.length;i++){
         const ch = added[i];
         const pos = typed.length;
-
-        // If in test, auto-append another copy of the passage near end (retype rule)
-        if (stage === STAGE_TEST){
-          appendRetypeBlockIfNeeded(pos);
-        }
-
-        const expected = targetText[pos] ?? "";
         typed += ch;
+
+        if (!basePassageChars) continue;
+
+        const loopPos = pos % basePassageChars;
+        const expected = basePassageText[loopPos] ?? "";
 
         if (ch === expected){
           correctChars++;
-          if (pos < targetSpans.length) targetSpans[pos].classList.add("correct");
+          targetSpans[loopPos]?.classList.add("correct");
         } else {
           wrongChars++;
-          if (pos < targetSpans.length) targetSpans[pos].classList.add("incorrect");
+          targetSpans[loopPos]?.classList.add("incorrect");
         }
 
-        updateCursor(pos + 1);
+        const nextLoopPos = (loopPos + 1) % basePassageChars;
+        setCursor(nextLoopPos);
+        scrollCursorIntoView(nextLoopPos);
+
+        // completed a full passage cycle exactly
+        if ((loopPos + 1) === basePassageChars){
+          passageCompleted++;
+          passageDoneEl.textContent = String(passageCompleted);
+          clearMarking();
+          showToast("Passage completed. Retype from beginning.");
+        }
       }
 
-      scrollCursorIntoView(typed.length);
-      updateStatsUI();
+      // update light stats immediately
+      const totalWords = typed.length / WORD_UNIT;
+      wordsTypedEl.textContent = totalWords.toFixed(2);
+      rawWordsEl.textContent = String(tokenizeWords(typed).length);
+
+      const acc = typed.length ? (correctChars / typed.length) * 100 : 100;
+      accEl.textContent = `${acc.toFixed(2)}%`;
     }
 
     // -------------------------
@@ -1402,17 +1252,11 @@
         if (!raw) return [];
         const arr = JSON.parse(raw);
         return Array.isArray(arr) ? arr : [];
-      }catch{
-        return [];
-      }
+      }catch{ return []; }
     }
 
     function saveHistory(arr){
-      try{
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-      }catch{
-        // ignore
-      }
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }catch{}
     }
 
     function pruneHistory(arr){
@@ -1439,31 +1283,26 @@
       return map;
     }
 
-    function avg(nums){
-      if (!nums.length) return 0;
-      return nums.reduce((a,b)=>a+b,0) / nums.length;
-    }
+    function avg(nums){ return nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : 0; }
 
     function renderHistory(){
       const hist = pruneHistory(loadHistory());
       if (!hist.length){
         historyMini.textContent = "No tests saved yet.";
         historyTable.innerHTML = `<tr><td class="muted" colspan="5">No history yet.</td></tr>`;
-        spark.innerHTML = "";
         return;
       }
 
       const byDay = groupByDay(hist);
       const days = Array.from(byDay.keys()).sort((a,b) => (a < b ? 1 : -1));
+
       const daily = days.map(day => {
         const sessions = byDay.get(day);
         const nets = sessions.map(s => Number(s.net || 0));
         const best = Math.max(...nets);
         const avgNet = avg(nets);
-        const statuses = sessions.map(s => s.status || "");
-        // "best status" = status of the session with best net
         const bestIdx = nets.indexOf(best);
-        const bestStatus = statuses[bestIdx] || "—";
+        const bestStatus = sessions[bestIdx]?.status || "—";
         return { day, count: sessions.length, best, avgNet, bestStatus };
       });
 
@@ -1471,47 +1310,22 @@
         <tr>
           <td>${d.day}</td>
           <td class="muted">${d.count}</td>
-          <td><strong>${Math.round(d.best)}</strong></td>
+          <td><strong>${d.best.toFixed(1)}</strong></td>
           <td class="muted">${d.avgNet.toFixed(1)}</td>
           <td class="muted">${d.bestStatus}</td>
         </tr>
       `).join("");
 
-      const todayKey = localDayKey(Date.now());
-      const todaySessions = byDay.get(todayKey) || [];
-      const todayBest = todaySessions.length ? Math.max(...todaySessions.map(s => Number(s.net||0))) : 0;
-
-      const last7 = daily.slice(0, 7);
-      const last7Avg = last7.length ? avg(last7.map(d => d.avgNet)) : 0;
       const bestOverall = Math.max(...hist.map(s => Number(s.net||0)));
-
       historyMini.innerHTML =
-        `Today best net: <strong>${Math.round(todayBest)}</strong> • ` +
-        `7-day avg net: <strong>${last7Avg.toFixed(1)}</strong> • ` +
-        `Best net (saved): <strong>${Math.round(bestOverall)}</strong> • ` +
-        `Tests saved: <strong>${hist.length}</strong>`;
-
-      // Spark bars
-      const maxNet = Math.max(...daily.map(d => d.best), 1);
-      spark.innerHTML = "";
-      daily.slice().reverse().forEach((d) => {
-        const h = Math.max(6, Math.round((d.best / maxNet) * 56));
-        const div = document.createElement("div");
-        div.className = "bar" + (d.day === todayKey ? " best" : "");
-        div.style.height = `${h}px`;
-        div.title = `${d.day} • best net ${Math.round(d.best)} • tests ${d.count}`;
-        spark.appendChild(div);
-      });
+        `Best net (saved): <strong>${bestOverall.toFixed(1)}</strong> • Tests saved: <strong>${hist.length}</strong> • Last: <strong>${new Date(hist[0].ts).toLocaleString()}</strong>`;
     }
 
     function exportCSV(){
       const hist = pruneHistory(loadHistory());
-      if (!hist.length){
-        showToast("No history to export.");
-        return;
-      }
+      if (!hist.length){ showToast("No history to export."); return; }
 
-      const header = ["timestamp","date","status","words","grossWpm","netWpm","full","half","totalMist","allowable","finalMist","passagesCompleted","charAcc"];
+      const header = ["timestamp","date","status","chars","words_exam","words_raw","gross","net","full","half","totalMist","allow","finalMist","passDone","acc"];
       const lines = [header.join(",")];
 
       for (const s of hist.slice().reverse()){
@@ -1519,7 +1333,9 @@
           new Date(s.ts).toISOString(),
           localDayKey(s.ts),
           (s.status || "").replace(/,/g," "),
+          s.chars ?? "",
           s.words ?? "",
+          s.rawWords ?? "",
           s.gross ?? "",
           s.net ?? "",
           s.full ?? "",
