@@ -260,20 +260,21 @@
     tbody td.muted{ color: var(--muted2); }
     .scroll{ max-height: 240px; overflow:auto; }
 
-    .modal{ position: fixed; inset: 0; display:none; place-items:center; background: rgba(0,0,0,.55); z-index: 1000; padding: 18px; }
+    /* Made modal more visible (less transparent) */
+    .modal{ position: fixed; inset: 0; display:none; place-items:center; background: rgba(0,0,0,.72); z-index: 1000; padding: 18px; }
     .modal.show{ display:grid; }
     .modal-card{
       width: min(860px, 100%);
       border-radius: 24px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      box-shadow: 0 30px 90px rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.18);
+      background: linear-gradient(180deg, rgba(24, 30, 70, .92), rgba(10, 12, 26, .90));
+      box-shadow: 0 30px 90px rgba(0,0,0,.60);
       overflow:hidden;
     }
     .modal-h{
       padding: 16px 18px;
       border-bottom: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.16);
+      background: rgba(0,0,0,.24);
       display:flex; align-items:center; justify-content:space-between; gap: 10px;
     }
     .modal-h h2{ margin:0; font-size: 16px; letter-spacing:.2px; }
@@ -283,7 +284,7 @@
       display:flex; justify-content:space-between; gap: 14px;
       padding: 10px 12px;
       border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.12);
+      background: rgba(0,0,0,.14);
       border-radius: 14px;
       color: var(--muted);
       font-size: 13.5px;
@@ -440,6 +441,13 @@
               <div class="sub">practice feedback</div>
             </div>
 
+            <!-- Added: Word accuracy (kept everything else unchanged) -->
+            <div class="stat">
+              <p class="k">Word accuracy</p>
+              <p id="wordAcc" class="v">100%</p>
+              <div class="sub">based on full + half/2</div>
+            </div>
+
             <div class="stat">
               <p class="k">Word bank loaded</p>
               <p id="bankInfo" class="v">—</p>
@@ -581,6 +589,7 @@
     const grossWpmEl = $("grossWpm");
     const netWpmEl = $("netWpm");
     const accEl = $("acc");
+    const wordAccEl = $("wordAcc"); // added
     const bankInfoEl = $("bankInfo");
 
     const historyMini = $("historyMini");
@@ -767,6 +776,7 @@
       grossWpmEl.textContent = "0";
       netWpmEl.textContent = "0";
       accEl.textContent = "100%";
+      wordAccEl.textContent = "100%"; // added
 
       clearMarking();
       forceCaretToEnd();
@@ -884,6 +894,12 @@
 
       const charAcc = totalChars ? (correctChars / totalChars) * 100 : 100;
 
+      // Added: word accuracy (based on full + half/2)
+      const typedWordCount = typedWords.length;
+      const wordAcc = typedWordCount
+        ? (Math.max(0, typedWordCount - totalMistakes) / typedWordCount) * 100
+        : 100;
+
       let status = "Evaluated";
       if (totalWords < MIN_WORDS_EN) status = "Not evaluated (<300 words)";
       if (passageCompleted < 1) status = "Disqualified (passage not completed)";
@@ -892,7 +908,7 @@
         status,
         totalChars,
         totalWords,
-        rawWords: tokenizeWords(typed).length,
+        rawWords: typedWordCount,
         passagesCompleted: passageCompleted,
         fullMistakes: align.fullMistakes,
         halfMistakes: align.halfMistakes,
@@ -901,7 +917,8 @@
         finalMist,
         grossWpmExam,
         netWpm,
-        charAcc
+        charAcc,
+        wordAcc // added
       };
     }
 
@@ -1003,6 +1020,7 @@
           finalMistEl.textContent = m.finalMist.toFixed(2);
           grossWpmEl.textContent = m.grossWpmExam.toFixed(1);
           netWpmEl.textContent = m.netWpm.toFixed(1);
+          wordAccEl.textContent = `${m.wordAcc.toFixed(2)}%`; // added
         }
       }
 
@@ -1030,7 +1048,8 @@
         ["Final mistakes", m.finalMist.toFixed(2)],
         ["Gross (10 min)", m.grossWpmExam.toFixed(2)],
         ["Net WPM", m.netWpm.toFixed(2)],
-        ["Character accuracy", `${m.charAcc.toFixed(2)}%`]
+        ["Character accuracy", `${m.charAcc.toFixed(2)}%`],
+        ["Word accuracy", `${m.wordAcc.toFixed(2)}%`] // added
       ];
 
       resultGrid.innerHTML = lines.map(([k,v]) =>
@@ -1065,6 +1084,7 @@
       grossWpmEl.textContent = m.grossWpmExam.toFixed(1);
       netWpmEl.textContent = m.netWpm.toFixed(1);
       accEl.textContent = `${m.charAcc.toFixed(2)}%`;
+      wordAccEl.textContent = `${m.wordAcc.toFixed(2)}%`; // added
       liveWpmEl.textContent = m.grossWpmExam.toFixed(1); // at 10 minutes, live avg = exam gross
 
       setTimerUI(0);
