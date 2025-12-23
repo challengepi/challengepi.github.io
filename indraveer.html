@@ -260,7 +260,6 @@
     tbody td.muted{ color: var(--muted2); }
     .scroll{ max-height: 240px; overflow:auto; }
 
-    /* Result modal made clearly visible */
     .modal{ position: fixed; inset: 0; display:none; place-items:center; background: rgba(0,0,0,.78); z-index: 1000; padding: 18px; }
     .modal.show{ display:grid; }
     .modal-card{
@@ -331,7 +330,7 @@
           <div class="rule"><span class="dot"></span><span><strong>Net WPM</strong> = (TotalWords − (FinalMistakes × 10)) ÷ 10</span></div>
 
           <div style="margin-top:10px; color:var(--muted2); font-size:12.5px; line-height:1.35;">
-            <strong>Exam word standard:</strong> This app uses <strong>totalCharacters ÷ 5</strong> as “Total Words typed” (same style as many typing platforms).
+            <strong>Exam word standard:</strong> This app uses <strong>totalCharacters ÷ 5</strong> as “Total Words typed”.
             It also shows a “raw word count” just for reference.
           </div>
 
@@ -402,13 +401,13 @@
             <div class="stat">
               <p class="k">Full mistakes</p>
               <p id="fullMist" class="v">0</p>
-              <div class="sub">wrong/missing/extra word</div>
+              <div class="sub">any wrong word/spelling</div>
             </div>
 
             <div class="stat">
               <p class="k">Half mistakes</p>
               <p id="halfMist" class="v">0</p>
-              <div class="sub">spacing/punctuation/small spelling</div>
+              <div class="sub">spacing/punctuation only</div>
             </div>
 
             <div class="stat">
@@ -711,7 +710,6 @@
       basePassageText = text;
       basePassageChars = basePassageText.length;
 
-      // render once only (looping is done via modulo)
       targetEl.innerHTML = "";
       targetSpans = [];
 
@@ -780,20 +778,14 @@
     }
 
     // ==========================================================
-    // SSC-style evaluation engine
-    //
-    // - Word mistakes (FULL/HALF) computed by DP alignment on WORDS ONLY
-    // - Spacing/punctuation mistakes counted as HALF via separator mismatch
-    //
-    // This fixes:
-    // (1) comma vs full stop => HALF
-    // (2) extra/missing spaces => HALF
-    // (3) spelling/word errors => FULL (unless 1-edit => HALF)
+    // Railway/SSC evaluator (strict words):
+    // - FULL: any wrong word (even 1 letter / case) + missing/extra word
+    // - HALF: only punctuation/spacing differences for correctly matched words
     // ==========================================================
 
     function splitWordSep(text){
-      // words: [A-Za-z0-9]+
-      // sep: everything after the word until next word (spaces/punct/newlines)
+      // word = [A-Za-z0-9]+
+      // sep  = everything after it until next word
       const words = [];
       const seps  = [];
       let prefix = "";
@@ -824,178 +816,115 @@
     }
 
     function normalizeSep(s){
-      // collapse all whitespace sequences to single space
+      // Normalize spaces: multiple spaces/newlines/tabs => one space
       return String(s || "").replace(/\s+/g, " ");
     }
 
-    function isOneEditAway(a, b){
-      if (a === b) return false;
-      if (!a || !b) return false;
-
-      const la = a.length, lb = b.length;
-      if (Math.abs(la - lb) > 1) return false;
-
-      if (la === lb){
-        let diff = 0;
-        for (let i=0;i<la;i++){
-          if (a[i] !== b[i]) { diff++; if (diff > 1) return false; }
-        }
-        return diff === 1;
-      }
-
-      const shorter = la < lb ? a : b;
-      const longer  = la < lb ? b : a;
-      let i = 0, j = 0, edits = 0;
-      while (i < shorter.length && j < longer.length){
-        if (shorter[i] === longer[j]) { i++; j++; }
-        else { edits++; if (edits > 1) return false; j++; }
-      }
-      return true;
-    }
-
-    function wordSubCost(tw, ew){
-      if (tw === ew) return { cost: 0, kind: 0 }; // match
-      if (tw.toLowerCase() === ew.toLowerCase()) return { cost: 0.5, kind: 1 }; // half (case)
-      if (isOneEditAway(tw, ew)) return { cost: 0.5, kind: 1 }; // half (small spelling)
-      return { cost: 1, kind: 2 }; // full
-    }
-
-    function computeWordAlignmentSSC(typedWords, expectedWords){
+    function computeWordAlignmentStrict(typedWords, expectedWords){
       const n = typedWords.length;
       const m = expectedWords.length;
 
-      // dir codes:
-      // 1=ins(full), 2=del(full), 3=match, 4=sub_half, 5=sub_full
+      // dir codes: 1=ins(full), 2=del(full), 3=match, 5=sub_full
       const dir = new Uint8Array((n+1) * (m+1));
       const prev = new Float32Array(m+1);
       const curr = new Float32Array(m+1);
 
       prev[0] = 0;
       for (let j=1;j<=m;j++){
-        prev[j] = prev[j-1] + 1;      // deleting expected word => full
-        dir[j] = 2;                   // del
+        prev[j] = prev[j-1] + 1;
+        dir[j] = 2;
       }
 
       for (let i=1;i<=n;i++){
-        curr[0] = prev[0] + 1;        // inserting typed word => full
+        curr[0] = prev[0] + 1;
         dir[i*(m+1)+0] = 1;
 
         const tw = typedWords[i-1];
         for (let j=1;j<=m;j++){
           const ew = expectedWords[j-1];
 
-          const sub = wordSubCost(tw, ew);
-          const costIns = prev[j] + 1;          // extra typed word => full
-          const costDel = curr[j-1] + 1;        // missing expected word => full
-          const costSub = prev[j-1] + sub.cost; // match/half/full
+          const isMatch = (tw === ew);
+          const subCost = isMatch ? 0 : 1;
+          const subDir  = isMatch ? 3 : 5;
+
+          const costIns = prev[j] + 1;
+          const costDel = curr[j-1] + 1;
+          const costSub = prev[j-1] + subCost;
 
           let best = costSub;
-          let bestDir = (sub.kind === 0) ? 3 : (sub.kind === 1 ? 4 : 5);
+          let bestDir = subDir;
 
-          if (costDel < best - 1e-6){
-            best = costDel;
-            bestDir = 2;
-          }
-          if (costIns < best - 1e-6){
-            best = costIns;
-            bestDir = 1;
-          }
+          if (costDel < best - 1e-6){ best = costDel; bestDir = 2; }
+          if (costIns < best - 1e-6){ best = costIns; bestDir = 1; }
 
           curr[j] = best;
           dir[i*(m+1)+j] = bestDir;
         }
-
         prev.set(curr);
       }
 
-      // Allow ending early (do not penalize remaining expected words)
-      let bestJ = 0;
-      let bestCost = prev[0];
+      // allow ending early without penalizing leftover expected tail
+      let bestJ = 0, bestCost = prev[0];
       for (let j=1;j<=m;j++){
-        if (prev[j] < bestCost){
-          bestCost = prev[j];
-          bestJ = j;
-        }
+        if (prev[j] < bestCost){ bestCost = prev[j]; bestJ = j; }
       }
 
       let i = n, j = bestJ;
-      let full = 0, half = 0;
+      let full = 0;
       const alignedPairs = [];
 
       while (i > 0 || j > 0){
-        if (i === 0) break; // do not count leftover expected tail
-        if (j === 0){
-          // remaining typed words are insertions (full)
-          full += i;
-          break;
-        }
+        if (i === 0) break; // don't count remaining expected tail
+        if (j === 0){ full += i; break; }
 
         const code = dir[i*(m+1)+j];
-        if (code === 1){
-          full++; i--;                 // extra typed word
-        } else if (code === 2){
-          full++; j--;                 // missing expected word (within aligned span)
-        } else if (code === 3){
-          alignedPairs.push({ ti: i-1, ej: j-1, kind: 0 });
-          i--; j--;
-        } else if (code === 4){
-          half++; alignedPairs.push({ ti: i-1, ej: j-1, kind: 1 });
-          i--; j--;
-        } else if (code === 5){
-          full++; alignedPairs.push({ ti: i-1, ej: j-1, kind: 2 });
-          i--; j--;
-        } else {
-          i--; j--;
-        }
+        if (code === 1){ full++; i--; }
+        else if (code === 2){ full++; j--; }
+        else if (code === 3){ alignedPairs.push({ ti: i-1, ej: j-1, wordOK: true }); i--; j--; }
+        else if (code === 5){ full++; alignedPairs.push({ ti: i-1, ej: j-1, wordOK: false }); i--; j--; }
+        else { i--; j--; }
       }
 
       alignedPairs.reverse();
-      return { fullMistakes: full, halfMistakes: half, alignedPairs };
+      return { fullMistakes: full, alignedPairs };
     }
 
     function computeSSCMistakes(typedText, expectedText){
       const t = splitWordSep(typedText);
       const e = splitWordSep(expectedText);
 
-      const align = computeWordAlignmentSSC(t.words, e.words);
+      const align = computeWordAlignmentStrict(t.words, e.words);
 
-      // Half mistakes for spacing/punctuation differences:
-      // compare separators after each aligned word.
-      let sepHalf = 0;
+      // HALF mistakes: punctuation/spacing differences ONLY when the word itself is correct
+      let half = 0;
       for (const p of align.alignedPairs){
+        if (!p.wordOK) continue;
         const ts = t.seps[p.ti] || "";
         const es = e.seps[p.ej] || "";
-        if (normalizeSep(ts) !== normalizeSep(es)){
-          sepHalf++;
-        }
+        if (normalizeSep(ts) !== normalizeSep(es)) half++;
       }
 
-      // Also count prefix separator mismatch once (very rare but helps with leading quotes/brackets)
-      // Only if alignment starts from expected word 0.
-      if (align.alignedPairs.length && align.alignedPairs[0].ej === 0){
-        if (normalizeSep(t.prefix) !== normalizeSep(e.prefix)){
-          sepHalf++;
-        }
+      // prefix mismatch counts as HALF only if first aligned word is correct at expected index 0
+      if (align.alignedPairs.length && align.alignedPairs[0].ej === 0 && align.alignedPairs[0].wordOK){
+        if (normalizeSep(t.prefix) !== normalizeSep(e.prefix)) half++;
       }
 
       return {
         fullMistakes: align.fullMistakes,
-        halfMistakes: align.halfMistakes + sepHalf
+        halfMistakes: half
       };
     }
 
     function computeFinalTestMetrics(){
-      // exam words = characters/5
       const totalChars = typed.length;
       const totalWords = totalChars / WORD_UNIT;
 
-      // Build expected repeated text to cover what user typed.
-      // Use word-count based repeat to stay small + accurate.
+      // Repeat expected passage with a SPACE between repeats (important!)
       const typedUnits = splitWordSep(typed);
-      const baseUnits = splitWordSep(basePassageText);
+      const baseUnits  = splitWordSep(basePassageText);
       const baseWordLen = Math.max(1, baseUnits.words.length);
       const repeats = Math.max(1, Math.ceil((typedUnits.words.length + baseWordLen) / baseWordLen));
-      const expectedText = basePassageText.repeat(repeats);
+      const expectedText = Array.from({length: repeats}, () => basePassageText).join(" ");
 
       const mm = computeSSCMistakes(typed, expectedText);
 
@@ -1008,9 +937,8 @@
 
       const charAcc = totalChars ? (correctChars / totalChars) * 100 : 100;
 
-      // word accuracy (based on full + half/2 against "word tokens" detected)
       const denomWords = Math.max(1, typedUnits.words.length);
-      const wordAcc = denomWords ? (Math.max(0, denomWords - totalMistakes) / denomWords) * 100 : 100;
+      const wordAcc = (Math.max(0, denomWords - totalMistakes) / denomWords) * 100;
 
       let status = "Evaluated";
       if (totalWords < MIN_WORDS_EN) status = "Not evaluated (<300 words)";
@@ -1020,7 +948,7 @@
         status,
         totalChars,
         totalWords,
-        rawWords: tokenizeWords(typed).length, // keep your original "reference" style
+        rawWords: tokenizeWords(typed).length,
         passagesCompleted: passageCompleted,
         fullMistakes: mm.fullMistakes,
         halfMistakes: mm.halfMistakes,
@@ -1122,7 +1050,7 @@
         const acc = typed.length ? (correctChars / typed.length) * 100 : 100;
         accEl.textContent = `${acc.toFixed(2)}%`;
 
-        // heavy metrics (DP) occasionally
+        // heavy metrics occasionally (DP)
         if (!tick._lastHeavy || (now - tick._lastHeavy) > 2500){
           tick._lastHeavy = now;
           const m = computeFinalTestMetrics();
@@ -1185,7 +1113,6 @@
 
       const m = computeFinalTestMetrics();
 
-      // set final UI
       wordsTypedEl.textContent = m.totalWords.toFixed(2);
       rawWordsEl.textContent = String(m.rawWords);
       passageDoneEl.textContent = String(m.passagesCompleted);
@@ -1197,7 +1124,7 @@
       netWpmEl.textContent = m.netWpm.toFixed(1);
       accEl.textContent = `${m.charAcc.toFixed(2)}%`;
       wordAccEl.textContent = `${m.wordAcc.toFixed(2)}%`;
-      liveWpmEl.textContent = m.grossWpmExam.toFixed(1); // at 10 minutes, live avg = exam gross
+      liveWpmEl.textContent = m.grossWpmExam.toFixed(1);
 
       setTimerUI(0);
       setProgressUI(0);
@@ -1306,7 +1233,6 @@
 
       const val = typebox.value;
 
-      // no deletion allowed
       if (val.length < typed.length){
         typebox.value = typed;
         forceCaretToEnd();
@@ -1341,7 +1267,6 @@
         setCursor(nextLoopPos);
         scrollCursorIntoView(nextLoopPos);
 
-        // completed a full passage cycle exactly
         if ((loopPos + 1) === basePassageChars){
           passageCompleted++;
           passageDoneEl.textContent = String(passageCompleted);
@@ -1350,7 +1275,6 @@
         }
       }
 
-      // update light stats immediately
       const totalWords = typed.length / WORD_UNIT;
       wordsTypedEl.textContent = totalWords.toFixed(2);
       rawWordsEl.textContent = String(tokenizeWords(typed).length);
@@ -1360,7 +1284,7 @@
     }
 
     // -------------------------
-    // History (fast + pruned)
+    // History
     // -------------------------
     function localDayKey(ts){
       const d = new Date(ts);
