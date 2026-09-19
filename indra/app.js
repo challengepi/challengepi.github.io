@@ -24,6 +24,8 @@
   let reviewIndex = 0;
   let reviewRevealed = false;
   let reviewBusy = false;
+  let reviewMode = 'due';
+  let sessionReviewed = [];
   let lastUndo = null;
 
   const prefs = loadPrefs();
@@ -55,8 +57,8 @@
     liveStatus.textContent = msg;
   }
   function loadPrefs() {
-    try { return Object.assign({retention:.90}, JSON.parse(localStorage.getItem(PREF_KEY) || '{}')); }
-    catch { return {retention:.90}; }
+    try { return Object.assign({retention:.90, lastSession:[], reelTab:'review'}, JSON.parse(localStorage.getItem(PREF_KEY) || '{}')); }
+    catch { return {retention:.90, lastSession:[], reelTab:'review'}; }
   }
   function savePrefs() { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); }
 
@@ -125,6 +127,12 @@
 
   async function getCard(id) { return tx(['cards'], 'readonly', async ({cards}) => reqP(cards.get(id))); }
   async function getAllCards() { return tx(['cards'], 'readonly', async ({cards}) => reqP(cards.getAll())); }
+  async function getCardsByIds(ids=[]) {
+    if (!ids.length) return [];
+    const wanted = new Set(ids.map(Number));
+    const cards = await getAllCards();
+    return ids.map(id => cards.find(c => c.id === Number(id))).filter(Boolean).filter(c => wanted.has(c.id));
+  }
   async function getDaily() { return tx(['daily'], 'readonly', async ({daily}) => reqP(daily.getAll())); }
   async function countCards() { return tx(['cards'], 'readonly', async ({cards}) => reqP(cards.count())); }
 
@@ -238,13 +246,15 @@
     await startReview();
   }
 
-  async function render(view=currentView) {
+  async function render(view=currentView, options={}) {
     currentView = view;
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-    const titles = {home:'VocabLoop',review:'Review',words:'Your words',stats:'Progress',settings:'Data & privacy'};
+    const titles = {home:'VocabLoop',review:'Review',reels:'Reel mode',words:'Your words',stats:'Progress',settings:'Data & privacy'};
     pageTitle.textContent = titles[view] || 'VocabLoop';
+    document.body.classList.toggle('reel-view', view === 'reels');
     if (view === 'home') await renderHome();
-    if (view === 'review') await startReview();
+    if (view === 'review') await startReview(options.mode || 'due', options.ids || null);
+    if (view === 'reels') await renderReels(options.tab || prefs.reelTab || 'review');
     if (view === 'words') await renderWords();
     if (view === 'stats') await renderStats();
     if (view === 'settings') await renderSettings();
@@ -257,14 +267,21 @@
     const avg = mature.length ? Math.round(mature.reduce((a,c)=>a + Math.min(1, Math.log2(2**c.z+1)/8),0)/mature.length*100) : 0;
     const recent = daily.filter(d => d.day >= epochDay()-6);
     const reviews = recent.reduce((a,d)=>a+d.r,0);
+    const canReplay = Array.isArray(prefs.lastSession) && prefs.lastSession.length > 0;
     main.innerHTML = `
       <section class="hero">
         <p class="eyebrow">Adaptive spaced repetition</p>
         <h2>${due ? `${due} ${due===1?'word':'words'} due` : total ? 'You’re caught up' : 'Build your first deck'}</h2>
         <p>${total ? 'Words you forget will return sooner. Easy recalls gradually move farther apart.' : 'Add words and meanings. Everything stays in this browser.'}</p>
-        <div class="hero-actions">
-          <button class="btn primary" id="home-review" ${due?'':'disabled'}>Start review</button>
-          <button class="btn" id="home-add">+ Word</button>
+        <div class="home-action-stack">
+          <div class="hero-actions">
+            <button class="btn primary" id="home-review" ${due?'':'disabled'}>Start review</button>
+            <button class="btn" id="home-add">+ Word</button>
+          </div>
+          <div class="hero-actions secondary-actions">
+            <button class="btn ghost" id="home-reels" ${total?'':'disabled'}>▥ Reel mode</button>
+            <button class="btn ghost" id="home-rereview" ${canReplay?'':'disabled'}>↻ Re-review</button>
+          </div>
         </div>
       </section>
       <div class="grid-2">
@@ -281,11 +298,20 @@
         </div>
       </section>`;
     $('#home-review')?.addEventListener('click', () => render('review'));
-    $('#home-add').addEventListener('click', () => openWordDialog());
+    $('#home-add')?.addEventListener('click', () => openWordDialog());
+    $('#home-reels')?.addEventListener('click', () => render('reels'));
+    $('#home-rereview')?.addEventListener('click', () => render('review', {mode:'rereview', ids:prefs.lastSession}));
   }
 
-  async function startReview() {
-    reviewQueue = await getDueCards(100);
+  async function startReview(mode='due', ids=null) {
+    reviewMode = mode;
+    if (mode === 'rereview') {
+      reviewQueue = await getCardsByIds(ids?.length ? ids : prefs.lastSession || []);
+      if (!reviewQueue.length) reviewQueue = (await getAllCards()).slice(0,100);
+    } else {
+      reviewQueue = await getDueCards(100);
+      sessionReviewed = [];
+    }
     reviewIndex = 0;
     reviewRevealed = false;
     reviewBusy = false;
@@ -299,35 +325,68 @@
     await renderReviewCard();
   }
 
+  function persistLastSession() {
+    if (!sessionReviewed.length) return;
+    prefs.lastSession = [...new Set(sessionReviewed)].slice(-100);
+    savePrefs();
+  }
+
+  async function finishPracticeCard(card, repeat=false) {
+    const at = reviewQueue.findIndex(c => c.id === card.id);
+    if (at < 0) return;
+    reviewQueue.splice(at, 1);
+    if (repeat) reviewQueue.push(card);
+    if (reviewIndex >= reviewQueue.length) reviewIndex = 0;
+    reviewRevealed = false;
+    await renderReviewCard();
+  }
+
   async function renderReviewCard() {
-    const dueTotal = await countDue();
+    const dueTotal = reviewMode === 'due' ? await countDue() : 0;
     if (reviewIndex >= reviewQueue.length) reviewIndex = 0;
     const card = reviewQueue[reviewIndex];
     if (!card) {
-      // A batch can become empty while other due cards exist (for example after
-      // importing data or reviewing more than the batch limit). Refresh it once.
-      if (dueTotal) {
+      if (reviewMode === 'due' && dueTotal) {
         reviewQueue = await getDueCards(100);
         reviewIndex = 0;
         if (reviewQueue.length) return renderReviewCard();
       }
-      main.innerHTML = `<div class="empty"><h2>Review complete</h2><p>Nice. The scheduler will surface each word again when it is useful.</p><div style="margin-top:18px;display:grid;gap:10px"><button class="btn primary" id="review-done">Back home</button></div></div>`;
-      $('#review-done').addEventListener('click', () => render('home'));
+      if (reviewMode === 'due') persistLastSession();
+      const replayIds = reviewMode === 'rereview' ? (prefs.lastSession || []) : (sessionReviewed.length ? sessionReviewed : (prefs.lastSession || []));
+      main.innerHTML = `<div class="empty review-complete">
+        <div class="complete-icon">✓</div>
+        <h2>${reviewMode === 'rereview' ? 'Re-review complete' : 'Review complete'}</h2>
+        <p>${reviewMode === 'rereview' ? 'Practice replay does not change your spaced-repetition schedule.' : 'The scheduler will surface each word again when it is useful.'}</p>
+        <div class="complete-actions">
+          ${replayIds.length ? '<button class="btn primary" id="review-again">↻ Re-review session</button>' : ''}
+          <button class="btn" id="review-reels">▥ Open Reel mode</button>
+          <button class="btn ghost" id="review-done">Back home</button>
+        </div>
+      </div>`;
+      $('#review-again')?.addEventListener('click', () => render('review', {mode:'rereview', ids:replayIds}));
+      $('#review-reels')?.addEventListener('click', () => render('reels'));
+      $('#review-done')?.addEventListener('click', () => render('home'));
       return;
     }
     const previews = [0,1,2,3].map(g => schedulePreview(card,g));
+    const practice = reviewMode === 'rereview';
     main.innerHTML = `
       <div class="review-wrap">
         <div class="review-top">
-          <span>${reviewIndex+1} / ${reviewQueue.length} · ${dueTotal} due</span>
+          <span>${reviewIndex+1} / ${reviewQueue.length}${practice ? ' · practice replay' : ` · ${dueTotal} due`}</span>
           <button class="review-skip" id="review-skip" type="button" ${reviewQueue.length < 2 ? 'disabled' : ''}>Next word →</button>
         </div>
+        ${practice ? '<div class="practice-note">↻ Re-review mode · ratings here do not change your schedule</div>' : ''}
         <article class="review-card" aria-live="polite">
           <p class="word">${esc(card.w)}</p>
           ${reviewRevealed ? `<div class="meaning">${esc(card.m)}</div>` : `<p class="hint">Try to recall the meaning before revealing it.</p>`}
         </article>
         <div class="review-actions">
-          ${!reviewRevealed ? `<div class="review-primary-actions"><button class="btn primary" id="reveal">Reveal meaning</button>${reviewQueue.length > 1 ? '<button class="btn" id="review-skip-bottom">Skip</button>' : ''}</div>` : `
+          ${!reviewRevealed ? `<div class="review-primary-actions"><button class="btn primary" id="reveal">Reveal meaning</button>${reviewQueue.length > 1 ? '<button class="btn" id="review-skip-bottom">Skip</button>' : ''}</div>` : practice ? `
+          <div class="practice-grid">
+            <button class="rating again" data-practice="again"><strong>Again soon</strong><small>Put it at the end</small></button>
+            <button class="rating easy" data-practice="got"><strong>Got it</strong><small>Continue</small></button>
+          </div>` : `
           <div class="rating-grid">
             <button class="rating again" data-grade="0"><strong>Again</strong><small>${intervalLabel(previews[0].mins)}</small></button>
             <button class="rating" data-grade="1"><strong>Hard</strong><small>${intervalLabel(previews[1].mins)}</small></button>
@@ -341,17 +400,16 @@
     $('#review-skip')?.addEventListener('click', skipReviewCard);
     $('#review-skip-bottom')?.addEventListener('click', skipReviewCard);
 
-    document.querySelectorAll('.rating').forEach(btn => btn.addEventListener('click', async () => {
+    document.querySelectorAll('[data-practice]').forEach(btn => btn.addEventListener('click', () => finishPracticeCard(card, btn.dataset.practice === 'again')));
+    document.querySelectorAll('.rating[data-grade]').forEach(btn => btn.addEventListener('click', async () => {
       if (reviewBusy) return;
       reviewBusy = true;
       document.querySelectorAll('.rating').forEach(b => b.disabled = true);
       try {
         const grade = Number(btn.dataset.grade);
         const next = await reviewCard(card, grade);
+        sessionReviewed.push(card.id);
         showToast(`Next review: ${intervalLabel(next.mins)}`);
-
-        // Remove exactly the card just reviewed. Keeping the index in place means
-        // the next card slides into the current position, so no card is skipped.
         const reviewedAt = reviewQueue.findIndex(c => c.id === card.id);
         if (reviewedAt >= 0) reviewQueue.splice(reviewedAt, 1);
         if (reviewIndex >= reviewQueue.length) reviewIndex = 0;
@@ -366,8 +424,6 @@
       }
     }));
 
-    // Touch-first shortcut: a deliberate left swipe moves to another due word
-    // without changing the current card's learning score.
     const cardEl = document.querySelector('.review-card');
     if (cardEl && reviewQueue.length > 1) {
       let startX = 0, startY = 0;
@@ -380,6 +436,128 @@
         if (dx < -70 && Math.abs(dx) > Math.abs(dy) * 1.25) skipReviewCard();
       }, {passive:true});
     }
+  }
+
+  async function renderReels(tab='review') {
+    prefs.reelTab = tab === 'add' ? 'add' : 'review';
+    savePrefs();
+    const cards = tab === 'review' ? await getDueCards(100) : [];
+    main.innerHTML = `
+      <div class="reel-shell">
+        <div class="reel-toolbar" role="tablist" aria-label="Reel mode">
+          <button class="reel-tab ${tab==='review'?'active':''}" data-reel-tab="review" role="tab">Review</button>
+          <button class="reel-tab ${tab==='add'?'active':''}" data-reel-tab="add" role="tab">Add</button>
+        </div>
+        ${tab === 'review' ? renderReviewReelsMarkup(cards) : renderAddReelMarkup()}
+      </div>`;
+    document.querySelectorAll('[data-reel-tab]').forEach(b => b.addEventListener('click', () => renderReels(b.dataset.reelTab)));
+    if (tab === 'review') bindReviewReels(cards); else bindAddReel();
+  }
+
+  function renderReviewReelsMarkup(cards) {
+    if (!cards.length) return `<div class="reel-empty reel-panel"><div><p class="eyebrow">All caught up</p><h2>No words are due</h2><p>Your scheduled review is complete. You can replay your last session or add more words.</p><div class="complete-actions"><button class="btn primary" id="reel-rereview" ${prefs.lastSession?.length?'':'disabled'}>↻ Re-review last session</button><button class="btn" id="reel-switch-add">+ Add words</button></div></div></div>`;
+    return `<div class="reel-feed" id="reel-feed" aria-label="Swipe vertically through due words">
+      ${cards.map((card,i) => {
+        const previews=[0,1,2,3].map(g=>schedulePreview(card,g));
+        return `<section class="reel-card" data-card-id="${card.id}" aria-label="Word ${i+1} of ${cards.length}">
+          <div class="reel-progress"><span>${i+1} / ${cards.length}</span><span>Swipe ↑↓</span></div>
+          <div class="reel-content">
+            <p class="eyebrow">Due review</p>
+            <h2 class="reel-word">${esc(card.w)}</h2>
+            <button class="reel-reveal" type="button">Tap to reveal</button>
+            <div class="reel-meaning hidden">${esc(card.m)}</div>
+          </div>
+          <div class="reel-rating hidden">
+            <button class="mini-rating again" data-grade="0"><strong>Again</strong><small>${intervalLabel(previews[0].mins)}</small></button>
+            <button class="mini-rating" data-grade="1"><strong>Hard</strong><small>${intervalLabel(previews[1].mins)}</small></button>
+            <button class="mini-rating" data-grade="2"><strong>Good</strong><small>${intervalLabel(previews[2].mins)}</small></button>
+            <button class="mini-rating easy" data-grade="3"><strong>Easy</strong><small>${intervalLabel(previews[3].mins)}</small></button>
+          </div>
+        </section>`;
+      }).join('')}
+      <section class="reel-card reel-end"><div class="reel-content"><p class="eyebrow">End of feed</p><h2>That’s the current queue</h2><p class="muted">Rated cards are saved immediately. Unrated cards remain due.</p><div class="complete-actions"><button class="btn primary" id="reel-refresh">Refresh due words</button><button class="btn" id="reel-add-end">+ Add a word</button></div></div></section>
+    </div>`;
+  }
+
+  function renderAddReelMarkup() {
+    return `<div class="reel-feed add-feed" id="reel-add-feed">
+      <section class="reel-card add-reel">
+        <form id="reel-add-form" class="reel-add-form">
+          <div class="reel-progress"><span>New word</span><span>Save & keep adding</span></div>
+          <div class="reel-content add-content">
+            <p class="eyebrow">Add reel</p>
+            <label><span>Word</span><input id="reel-word" maxlength="120" required autocomplete="off" autocapitalize="none" placeholder="ephemeral" /></label>
+            <label><span>Meaning</span><textarea id="reel-meaning" maxlength="1200" rows="6" required placeholder="lasting for a very short time"></textarea></label>
+            <div id="reel-duplicate" class="note hidden"></div>
+          </div>
+          <button class="reel-save" type="submit">Save word <span>↑</span></button>
+        </form>
+      </section>
+      <section class="reel-card add-tip"><div class="reel-content"><p class="eyebrow">Fast capture</p><h2>Add one, then another.</h2><p class="muted">After saving, the form clears so you can keep building your deck without leaving Reel Mode.</p><button class="btn primary" id="add-tip-back">Back to add form</button></div></section>
+    </div>`;
+  }
+
+  function bindReviewReels(cards) {
+    $('#reel-rereview')?.addEventListener('click', () => render('review', {mode:'rereview', ids:prefs.lastSession}));
+    $('#reel-switch-add')?.addEventListener('click', () => renderReels('add'));
+    $('#reel-refresh')?.addEventListener('click', () => renderReels('review'));
+    $('#reel-add-end')?.addEventListener('click', () => renderReels('add'));
+    document.querySelectorAll('.reel-card[data-card-id]').forEach(cardEl => {
+      const card = cards.find(c => c.id === Number(cardEl.dataset.cardId));
+      if (!card) return;
+      const reveal = cardEl.querySelector('.reel-reveal');
+      const meaning = cardEl.querySelector('.reel-meaning');
+      const rating = cardEl.querySelector('.reel-rating');
+      reveal.addEventListener('click', () => {
+        reveal.classList.add('hidden'); meaning.classList.remove('hidden'); rating.classList.remove('hidden');
+      });
+      cardEl.querySelectorAll('.mini-rating').forEach(btn => btn.addEventListener('click', async () => {
+        if (cardEl.dataset.busy === '1') return;
+        cardEl.dataset.busy = '1';
+        cardEl.querySelectorAll('.mini-rating').forEach(b => b.disabled = true);
+        try {
+          const next = await reviewCard(card, Number(btn.dataset.grade));
+          sessionReviewed.push(card.id);
+          persistLastSession();
+          showToast(`Saved · next ${intervalLabel(next.mins)}`);
+          const nextCard = cardEl.nextElementSibling;
+          cardEl.classList.add('rated');
+          setTimeout(() => nextCard?.scrollIntoView({behavior:'smooth', block:'start'}), 120);
+        } catch (err) {
+          cardEl.dataset.busy = '0';
+          cardEl.querySelectorAll('.mini-rating').forEach(b => b.disabled = false);
+          showToast('Could not save that review');
+        }
+      }));
+    });
+  }
+
+  function bindAddReel() {
+    $('#add-tip-back')?.addEventListener('click', () => $('#reel-add-form')?.scrollIntoView({behavior:'smooth', block:'start'}));
+    const form = $('#reel-add-form');
+    if (!form) return;
+    const word = $('#reel-word'), meaning = $('#reel-meaning'), note = $('#reel-duplicate');
+    word.addEventListener('input', async () => {
+      const w = word.value.trim();
+      if (!w) return note.classList.add('hidden');
+      const dup = await findDuplicate(w);
+      note.classList.toggle('hidden', !dup);
+      if (dup) note.textContent = `“${dup.w}” is already in your deck.`;
+    });
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const w=word.value.trim(), m=meaning.value.trim();
+      if (!w || !m) return;
+      const dup=await findDuplicate(w);
+      if (dup) { note.textContent=`“${dup.w}” is already in your deck.`; note.classList.remove('hidden'); return; }
+      try {
+        await addCard(w,m);
+        word.value=''; meaning.value=''; note.classList.add('hidden');
+        showToast('Word added · ready for the next one');
+        word.focus();
+      } catch { showToast('Could not save this word'); }
+    });
+    setTimeout(() => word.focus(), 80);
   }
 
   async function renderWords(query='') {

@@ -11,7 +11,10 @@ A dependency-free, mobile-first static vocabulary learning PWA.
 - Offline app shell via Service Worker.
 - Backup export/import (`.json.gz` when Compression Streams are supported).
 - Storage persistence request and quota estimate.
-- Touch-first responsive UI with keyboard shortcuts in review mode.
+- Touch-first responsive UI with always-visible six-section mobile navigation.
+- Optional Reel Mode: vertically swipe through due reviews or continuously add words in a full-screen capture flow.
+- Re-review last session in an unscored practice replay so manual repetition does not distort spaced-repetition intervals.
+- Keyboard shortcuts in normal review mode.
 - No backend, account, analytics, CDN, or network dependency after installation.
 
 ## Run locally
